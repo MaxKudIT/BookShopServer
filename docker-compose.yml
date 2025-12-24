@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  postgres:
+    image: bitnami/postgresql:latest
+    container_name: bookshop-db
+    environment:
+      - POSTGRESQL_USERNAME=MaxKudIT
+      - POSTGRESQL_PASSWORD=23145
+      - POSTGRESQL_DATABASE=bookshopDB
+      - POSTGRESQL_POSTGRES_PASSWORD=admin123
+    ports:
+      - "5436:5432"
+    volumes:
+      - /home/max/volumes/pg:/bitnami/postgresql
+volumes:
+  postgres_data:
+    driver: local
