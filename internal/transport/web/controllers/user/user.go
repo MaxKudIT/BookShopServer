@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"github.com/bookshop/internal/transport/web/dto"
-	"github.com/bookshop/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -15,7 +15,7 @@ func (uh *userHandler) Create(ctx context.Context, c *gin.Context) {
 	defer cancel()
 
 	var userdt dto.UserDTO
-
+	fmt.Println(userdt)
 	if err := c.ShouldBindJSON(&userdt); err != nil {
 		uh.l.Error("Error creating user: data not valid")
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -23,25 +23,9 @@ func (uh *userHandler) Create(ctx context.Context, c *gin.Context) {
 		})
 		return
 	}
+	
+	userp := dto.UserToDomain(uuid.New(), userdt)
 
-	if err := dto.Validate(userdt); err != nil {
-		uh.l.Error("Error creating user: data not valid")
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	passwordHash, err := utils.GenerateHash(userdt.Password)
-	if err != nil {
-		uh.l.Error("Error creating user: password hash not valid")
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	userp := dto.UserToDomain(uuid.New(), passwordHash, userdt)
 	user, err := uh.us.Create(ctxnew, userp)
 	if err != nil {
 		uh.l.Error("Error creating user", "id", user.Id, "err", err)

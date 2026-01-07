@@ -13,13 +13,12 @@ type Book struct {
 	AboutBook   string
 	Quote       string
 	CreatedDate time.Time
-	ReadingTime int
+	ReadingTime string
 	Price       float64
 	Discount    int //в процентах
 	Author      string
 	Genre       string
 	ImageUrl    string
-	UserId      uuid.UUID
 	Rate        float64
 	IsMine      bool
 }

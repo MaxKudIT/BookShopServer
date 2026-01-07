@@ -13,11 +13,16 @@ type bookRouter interface {
 	BookRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
+type pageRouter interface {
+	PageRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
 type server struct {
 	ur userRouter
 	br bookRouter
+	pr pageRouter
 }
 
-func New(ur userRouter, br bookRouter) *server {
-	return &server{ur: ur, br: br}
+func New(ur userRouter, br bookRouter, pr pageRouter) *server {
+	return &server{ur: ur, br: br, pr: pr}
 }

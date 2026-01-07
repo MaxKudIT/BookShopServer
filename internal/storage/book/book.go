@@ -64,6 +64,8 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
         id, 
         title, 
         genre, 
+        price, 
+        discount, 
         image_url
     FROM books 
     where user_id = $1
@@ -87,7 +89,7 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 
 	for rows.Next() {
 		var currentObject domain.BookPreview
-		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.IsMine); err != nil {
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
@@ -99,40 +101,40 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 	return myBooks, nil
 }
 
-func (cs *bookStorage) BookById(ctx context.Context, id uuid.UUID) (domain.Book, error) {
+func (bs *bookStorage) BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error) {
 	book := domain.Book{}
 	const GetBookQuery = "SELECT id, title, author, description, created_date, genre, pages_count, reading_time, price, discount, about_book, quote, image_url, rate, case when user_id = $1 then true else false end as is_mine FROM books WHERE id = $2"
-	if err := cs.db.QueryRowContext(ctx, GetBookQuery, id).Scan(
+	if err := bs.db.QueryRowContext(ctx, GetBookQuery, userId, bookId).Scan(
 		&book.Id,
-		book.Title,
-		book.Author,
-		book.Description,
-		book.CreatedDate,
-		book.Genre,
-		book.PagesCount,
-		book.ReadingTime,
-		book.Price,
-		book.Discount,
-		book.AboutBook,
-		book.Quote,
-		book.ImageUrl,
-		book.Rate,
-		book.IsMine); err != nil {
+		&book.Title,
+		&book.Author,
+		&book.Description,
+		&book.CreatedDate,
+		&book.Genre,
+		&book.PagesCount,
+		&book.ReadingTime,
+		&book.Price,
+		&book.Discount,
+		&book.AboutBook,
+		&book.Quote,
+		&book.ImageUrl,
+		&book.Rate,
+		&book.IsMine); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			cs.l.Error("book not found", "error", err)
+			bs.l.Error("book not found", "error", err)
 			return domain.Book{}, err
 		case errors.Is(err, context.Canceled):
-			cs.l.Warn("Query cancelled", "error", err)
+			bs.l.Warn("Query cancelled", "error", err)
 			return domain.Book{}, err
 		case errors.Is(err, context.DeadlineExceeded):
-			cs.l.Warn("Query timed out", "error", err)
+			bs.l.Warn("Query timed out", "error", err)
 			return domain.Book{}, err
 		default:
-			cs.l.Error("Query failed", "error", err)
+			bs.l.Error("Query failed", "error", err)
 			return domain.Book{}, err
 		}
 	}
-	cs.l.Info("Successfully got book", "id", id)
+	bs.l.Info("Successfully got book", "id", bookId)
 	return book, nil
 }

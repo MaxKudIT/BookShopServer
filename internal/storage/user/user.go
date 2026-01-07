@@ -10,9 +10,9 @@ import (
 
 func (us *userStorage) Save(ctx context.Context, user domain.User) error {
 
-	const CREATE_USER_QUERY = "INSERT INTO users (id, login, email, password_hash) VALUES ($1, $2, $3, $4)"
+	const CREATE_USER_QUERY = "INSERT INTO users (id, firebase_id) VALUES ($1, $2)"
 
-	if _, err := us.db.ExecContext(ctx, CREATE_USER_QUERY, user.Id, user.Login, user.Email, user.PasswordHash); err != nil {
+	if _, err := us.db.ExecContext(ctx, CREATE_USER_QUERY, user.Id, user.FirebaseId); err != nil {
 		switch {
 		case errors.Is(err, context.Canceled):
 			us.l.Warn("Query cancelled", "error", err)

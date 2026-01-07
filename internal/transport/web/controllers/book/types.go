@@ -10,7 +10,7 @@ import (
 type bookService interface {
 	AllBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
 	AllMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
-	BookById(ctx context.Context, id uuid.UUID) (domain.Book, error)
+	BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error)
 }
 
 type bookHandler struct {

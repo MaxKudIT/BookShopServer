@@ -32,8 +32,8 @@ func (b *bookService) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]domai
 	return books, nil
 }
 
-func (b *bookService) BookById(ctx context.Context, id uuid.UUID) (domain.Book, error) {
-	book, err := b.bs.BookById(ctx, id)
+func (b *bookService) BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error) {
+	book, err := b.bs.BookById(ctx, userId, bookId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			b.l.Info("book not found", "error", err)
@@ -43,6 +43,6 @@ func (b *bookService) BookById(ctx context.Context, id uuid.UUID) (domain.Book, 
 		return domain.Book{}, err
 	}
 
-	b.l.Info("Successfully got book", "id", id)
+	b.l.Info("Successfully got book", "id", bookId)
 	return book, nil
 }
