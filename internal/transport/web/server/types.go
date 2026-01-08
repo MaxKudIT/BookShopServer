@@ -17,12 +17,17 @@ type pageRouter interface {
 	PageRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
-type server struct {
-	ur userRouter
-	br bookRouter
-	pr pageRouter
+type ubRouter interface {
+	UBRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
-func New(ur userRouter, br bookRouter, pr pageRouter) *server {
-	return &server{ur: ur, br: br, pr: pr}
+type server struct {
+	ur  userRouter
+	br  bookRouter
+	pr  pageRouter
+	ubr ubRouter
+}
+
+func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter) *server {
+	return &server{ur: ur, br: br, pr: pr, ubr: ubr}
 }

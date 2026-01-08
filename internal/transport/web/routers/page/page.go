@@ -8,10 +8,10 @@ import (
 
 func (pr *pageRouter) PageRegRouters(ctx context.Context, gr *gin.RouterGroup) {
 
-	Books := gr.Group("/books")
+	Pages := gr.Group("/books")
 	{
-		Books.GET("/:id/pagesCount", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pr.ph.AllPagesOfBook(c.Request.Context(), c) })
-		Books.GET("/:id/pages/:pageNumber", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pr.ph.PageByNumber(c.Request.Context(), c) })
+		Pages.GET("/:id/pagesCount", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pr.ph.AllPagesOfBook(c.Request.Context(), c) })
+		Pages.GET("/:id/pages/:pageNumber", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pr.ph.PageByNumber(c.Request.Context(), c) })
 
 	}
 

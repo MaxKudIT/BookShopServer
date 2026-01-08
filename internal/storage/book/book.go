@@ -12,18 +12,19 @@ func (bs *bookStorage) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain
 
 	books := make([]domain.BookPreview, 0)
 	const AllBooksQuery = `
-    SELECT 
-        id, 
-        title, 
-        genre, 
-        price, 
-        discount, 
-        image_url,
-        case 
-            when user_id = $1 then true
-            else false
-        end as is_mine
-    FROM books
+  SELECT 
+    b.id, 
+    b.title, 
+    b.genre, 
+    b.price, 
+    b.discount, 
+    b.image_url,
+    CASE 
+        WHEN ub.user_uid = $1 THEN true
+        ELSE false
+    END AS is_mine
+FROM books b
+LEFT JOIN users_books ub ON b.id = ub.book_id
 `
 	rows, err := bs.db.QueryContext(ctx, AllBooksQuery, userId)
 	if err != nil {
@@ -67,8 +68,8 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
         price, 
         discount, 
         image_url
-    FROM books 
-    where user_id = $1
+    FROM books b
+    inner join users_books ub on ub.book_id = b.id AND ub.user_uid = $1
 `
 	rows, err := bs.db.QueryContext(ctx, AllMyBooksQuery, userId)
 	if err != nil {
@@ -103,7 +104,29 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 
 func (bs *bookStorage) BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error) {
 	book := domain.Book{}
-	const GetBookQuery = "SELECT id, title, author, description, created_date, genre, pages_count, reading_time, price, discount, about_book, quote, image_url, rate, case when user_id = $1 then true else false end as is_mine FROM books WHERE id = $2"
+	const GetBookQuery = `SELECT 
+    b.id, 
+    b.title, 
+    b.author, 
+    b.description, 
+    b.created_date, 
+    b.genre, 
+    b.pages_count, 
+    b.reading_time, 
+    b.price, 
+    b.discount, 
+    b.about_book, 
+    b.quote, 
+    b.image_url, 
+    b.rate,
+    EXISTS(
+        SELECT 1 
+        FROM users_books ub 
+        WHERE ub.book_id = b.id 
+          AND ub.user_uid = $1
+    ) AS is_mine
+FROM books b
+WHERE b.id = $2;`
 	if err := bs.db.QueryRowContext(ctx, GetBookQuery, userId, bookId).Scan(
 		&book.Id,
 		&book.Title,

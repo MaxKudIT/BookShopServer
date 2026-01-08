@@ -24,6 +24,7 @@ func (s *server) Create() *gin.Engine {
 		s.ur.UserRegRouters(context.TODO(), maingr) //группа maingr обновляется в основном router
 		s.pr.PageRegRouters(context.TODO(), maingr)
 		s.br.BookRegRouters(context.TODO(), maingr)
+		s.ubr.UBRegRouters(context.TODO(), maingr)
 	}
 
 	return router

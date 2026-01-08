@@ -8,9 +8,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func (b *bookService) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error) {
-	books, err := b.bs.AllBooks(ctx, userId)
+func (b *bookService) AllBooks(ctx context.Context, firebaseId string) ([]domain.BookPreview, error) {
 
+	userId, err := b.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		b.l.Error("user list failed", "err", err)
+		return nil, err
+	}
+	books, err := b.bs.AllBooks(ctx, userId)
 	if err != nil {
 		b.l.Error("book list failed", "err", err)
 		return nil, err
@@ -20,7 +25,14 @@ func (b *bookService) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain.
 	return books, nil
 }
 
-func (b *bookService) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error) {
+func (b *bookService) AllMyBooks(ctx context.Context, firebaseId string) ([]domain.BookPreview, error) {
+
+	userId, err := b.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		b.l.Error("user list failed", "err", err)
+		return nil, err
+	}
+
 	books, err := b.bs.AllMyBooks(ctx, userId)
 
 	if err != nil {
@@ -32,7 +44,12 @@ func (b *bookService) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]domai
 	return books, nil
 }
 
-func (b *bookService) BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error) {
+func (b *bookService) BookById(ctx context.Context, firebaseId string, bookId uuid.UUID) (domain.Book, error) {
+	userId, err := b.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		b.l.Error("user list failed", "err", err)
+		return domain.Book{}, err
+	}
 	book, err := b.bs.BookById(ctx, userId, bookId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
