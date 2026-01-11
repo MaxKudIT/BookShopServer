@@ -9,6 +9,7 @@ type bookHandler interface {
 	AllBooks(ctx context.Context, c *gin.Context)
 	AllMyBooks(ctx context.Context, c *gin.Context)
 	BookById(ctx context.Context, c *gin.Context)
+	IsMyBook(ctx context.Context, c *gin.Context)
 }
 
 type bookRouter struct {

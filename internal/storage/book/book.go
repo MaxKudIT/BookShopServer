@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
 )
@@ -13,18 +14,19 @@ func (bs *bookStorage) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain
 	books := make([]domain.BookPreview, 0)
 	const AllBooksQuery = `
   SELECT 
-    b.id, 
+    b.id,
     b.title, 
     b.genre, 
     b.price, 
     b.discount, 
     b.image_url,
     CASE 
-        WHEN ub.user_uid = $1 THEN true
+        WHEN ub.user_uid IS NOT NULL THEN true
         ELSE false
     END AS is_mine
 FROM books b
-LEFT JOIN users_books ub ON b.id = ub.book_id
+LEFT JOIN users_books ub ON b.id = ub.book_id 
+    AND ub.user_uid = $1;
 `
 	rows, err := bs.db.QueryContext(ctx, AllBooksQuery, userId)
 	if err != nil {
@@ -51,7 +53,7 @@ LEFT JOIN users_books ub ON b.id = ub.book_id
 		}
 		books = append(books, currentObject)
 	}
-
+	fmt.Println(len(books))
 	bs.l.Info("Successfully getting books")
 
 	return books, nil
@@ -160,4 +162,35 @@ WHERE b.id = $2;`
 	}
 	bs.l.Info("Successfully got book", "id", bookId)
 	return book, nil
+}
+
+func (bs *bookStorage) IsMyBook(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (bool, error) {
+	isMy := false
+	const IsMyBookQuery = `
+    SELECT	
+        EXISTS(
+        SELECT 1 
+        FROM users_books ub 
+        WHERE ub.book_id = $2 
+          AND ub.user_uid = $1
+    )`
+	if err := bs.db.QueryRowContext(ctx, IsMyBookQuery, userId, bookId).Scan(
+		&isMy); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			bs.l.Error("book or user not found", "error", err)
+			return false, err
+		case errors.Is(err, context.Canceled):
+			bs.l.Warn("Query cancelled", "error", err)
+			return false, err
+		case errors.Is(err, context.DeadlineExceeded):
+			bs.l.Warn("Query timed out", "error", err)
+			return false, err
+		default:
+			bs.l.Error("Query failed", "error", err)
+			return false, err
+		}
+	}
+	bs.l.Info("Successfully got result about purchase", "id", bookId)
+	return isMy, nil
 }

@@ -22,7 +22,14 @@ func (ubh *ubHandler) Buy(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	if err := ubh.ubserv.Buy(ctxnew, ubdt.FirebaseId, ubdt.BookId); err != nil {
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		ubh.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	if err := ubh.ubserv.Buy(ctxnew, firebaseid.(string), ubdt.BookId); err != nil {
 		ubh.l.Error("Error purchase book", "bookId", ubdt.BookId, "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -31,4 +38,5 @@ func (ubh *ubHandler) Buy(ctx context.Context, c *gin.Context) {
 	}
 	ubh.l.Info("Successfully purchase book", "bookId", ubdt.BookId)
 	c.JSON(201, gin.H{"Id:": ubdt.BookId})
+	//test
 }
