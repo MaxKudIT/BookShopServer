@@ -41,4 +41,5 @@ type BookPreview struct {
 	Discount int
 	ImageUrl string
 	IsMine   bool
+	Rate     float64
 }

@@ -20,6 +20,7 @@ func (bs *bookStorage) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain
     b.price, 
     b.discount, 
     b.image_url,
+    b.rate,
     CASE 
         WHEN ub.user_uid IS NOT NULL THEN true
         ELSE false
@@ -47,7 +48,7 @@ LEFT JOIN users_books ub ON b.id = ub.book_id
 
 	for rows.Next() {
 		var currentObject domain.BookPreview
-		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.IsMine); err != nil {
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate, &currentObject.IsMine); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
@@ -69,7 +70,8 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
         genre, 
         price, 
         discount, 
-        image_url
+        image_url,
+        rate
     FROM books b
     inner join users_books ub on ub.book_id = b.id AND ub.user_uid = $1
 `
@@ -92,7 +94,7 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 
 	for rows.Next() {
 		var currentObject domain.BookPreview
-		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl); err != nil {
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}

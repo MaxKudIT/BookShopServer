@@ -83,7 +83,7 @@ func (bh *bookHandler) BookById(ctx context.Context, c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	bh.l.Info("Successfully got book", "book", book)
+
 	c.JSON(http.StatusOK, gin.H{"book": book})
 }
 

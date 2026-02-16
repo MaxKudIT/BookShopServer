@@ -23,7 +23,7 @@ func (uh *userHandler) Create(ctx context.Context, c *gin.Context) {
 		})
 		return
 	}
-	
+
 	userp := dto.UserToDomain(uuid.New(), userdt)
 
 	user, err := uh.us.Create(ctxnew, userp)
@@ -35,7 +35,7 @@ func (uh *userHandler) Create(ctx context.Context, c *gin.Context) {
 		return
 	}
 	uh.l.Info("Successfully created user", "id", user.Id)
-	c.JSON(201, gin.H{"id:": user.Id})
+	c.JSON(201, gin.H{"id": user.Id})
 }
 
 func (uh *userHandler) Delete(ctx context.Context, c *gin.Context) {

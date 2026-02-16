@@ -21,13 +21,23 @@ type ubRouter interface {
 	UBRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
+type cartItemsRouter interface {
+	CartItemsRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
+type cartRouter interface {
+	CartRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
 type server struct {
 	ur  userRouter
 	br  bookRouter
 	pr  pageRouter
 	ubr ubRouter
+	cir cartItemsRouter
+	cr  cartRouter
 }
 
-func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter) *server {
-	return &server{ur: ur, br: br, pr: pr, ubr: ubr}
+func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter) *server {
+	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr}
 }
