@@ -7,7 +7,7 @@ import (
 )
 
 type ubService interface {
-	Buy(ctx context.Context, firebaseId string, bookId uuid.UUID) error
+	Buy(ctx context.Context, firebaseId string, bookIds []uuid.UUID) error
 }
 
 type ubHandler struct {

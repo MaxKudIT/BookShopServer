@@ -11,7 +11,7 @@ type userStorage interface {
 }
 
 type ubStorage interface {
-	Buy(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) error
+	Buy(ctx context.Context, userId uuid.UUID, bookIds []uuid.UUID) error
 }
 
 type ubService struct {

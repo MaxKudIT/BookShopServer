@@ -29,14 +29,14 @@ func (ubh *ubHandler) Buy(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	if err := ubh.ubserv.Buy(ctxnew, firebaseid.(string), ubdt.BookId); err != nil {
-		ubh.l.Error("Error purchase book", "bookId", ubdt.BookId, "err", err)
+	if err := ubh.ubserv.Buy(ctxnew, firebaseid.(string), ubdt.BookIds); err != nil {
+		ubh.l.Error("Error purchase books", "bookId", "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	ubh.l.Info("Successfully purchase book", "bookId", ubdt.BookId)
-	c.JSON(201, gin.H{"Id:": ubdt.BookId})
+	ubh.l.Info("Successfully purchase books")
+	c.JSON(201, gin.H{"Ids:": ubdt.BookIds})
 	//test
 }

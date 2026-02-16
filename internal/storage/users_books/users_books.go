@@ -3,14 +3,24 @@ package users_books
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 )
 
-func (ubs *ubStorage) Buy(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) error {
+func (ubs *ubStorage) Buy(ctx context.Context, userId uuid.UUID, bookIds []uuid.UUID) error {
 
-	const CreateUserBookQuery = "INSERT INTO users_books (user_uid, book_id) VALUES ($1, $2)"
+	var CreateUserBookQuery = "INSERT INTO users_books (user_uid, book_id) VALUES "
 
-	if _, err := ubs.db.ExecContext(ctx, CreateUserBookQuery, userId, bookId); err != nil {
+	placeholders := make([]string, 0, len(bookIds))
+	args := make([]any, 0, len(bookIds)*2)
+
+	for i, bookId := range bookIds {
+		args = append(args, userId, bookId)
+
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2))
+	}
+
+	if _, err := ubs.db.ExecContext(ctx, CreateUserBookQuery, args...); err != nil {
 		switch {
 		case errors.Is(err, context.Canceled):
 			ubs.l.Warn("Query cancelled", "error", err)
@@ -23,6 +33,6 @@ func (ubs *ubStorage) Buy(ctx context.Context, userId uuid.UUID, bookId uuid.UUI
 			return err
 		}
 	}
-	ubs.l.Info("Successfully got bought book", "idBook", bookId)
+	ubs.l.Info("Successfully got bought books")
 	return nil
 }
