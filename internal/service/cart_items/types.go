@@ -15,6 +15,7 @@ type cartItemStorage interface {
 	AllCartItems(ctx context.Context, cartId uuid.UUID) ([]domain.CartItemPreview, error)
 	Save(ctx context.Context, cartItem domain.CartItem) error
 	Delete(ctx context.Context, bookIds []uuid.UUID, cartId uuid.UUID) error
+	IsInCart(ctx context.Context, cartId uuid.UUID, bookId uuid.UUID) (bool, error)
 }
 
 type userStorage interface {

@@ -6,6 +6,30 @@ import (
 	"github.com/google/uuid"
 )
 
+func (ciserv *cartItemService) IsInCart(ctx context.Context, firebaseId string, bookId uuid.UUID) (bool, error) {
+
+	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		ciserv.l.Error("failed getting id by firebaseId", "err", err)
+		return false, err
+	}
+
+	cartId, err := ciserv.cs.CartByUserId(ctx, userId)
+	if err != nil {
+		ciserv.l.Info("Failed to get cart id", "id", cartId)
+		return false, err
+	}
+
+	IsInCart, err := ciserv.cis.IsInCart(ctx, cartId, bookId)
+	if err != nil {
+		ciserv.l.Error("result about book in the cart failed", "err", err)
+		return false, err
+	}
+
+	ciserv.l.Info("get a result book in thr cart success")
+	return IsInCart, nil
+}
+
 func (ciserv *cartItemService) AllCartItems(ctx context.Context, firebaseId string) ([]domain.CartItemPreview, error) {
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)

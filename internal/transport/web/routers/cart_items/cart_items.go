@@ -11,8 +11,9 @@ func (cir *cartItemsRouter) CartItemsRegRouters(ctx context.Context, gr *gin.Rou
 	CartItems := gr.Group("/ci")
 	{
 		CartItems.GET("/all", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { cir.cih.AllCartItems(c.Request.Context(), c) })
-		CartItems.POST("/", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { cir.cih.Create(c.Request.Context(), c) })
-		CartItems.DELETE("/", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { cir.cih.Delete(c.Request.Context(), c) })
+		CartItems.POST("", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { cir.cih.Create(c.Request.Context(), c) })
+		CartItems.POST("/incart", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { cir.cih.IsInCart(c.Request.Context(), c) })
+		CartItems.DELETE("", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { cir.cih.Delete(c.Request.Context(), c) })
 	}
 
 }

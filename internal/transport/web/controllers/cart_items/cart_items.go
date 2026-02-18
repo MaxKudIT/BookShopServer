@@ -9,6 +9,40 @@ import (
 	"time"
 )
 
+func (cih *cartItemsHandler) IsInCart(ctx context.Context, c *gin.Context) {
+	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	var cartItemdt dto.CartItemDTO
+
+	if err := c.ShouldBindJSON(&cartItemdt); err != nil {
+		cih.l.Error("Error getting result about book in the cart item: data not valid")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		cih.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	isInCart, err := cih.ciserv.IsInCart(ctxnew, firebaseid.(string), cartItemdt.BookId)
+	if err != nil {
+		cih.l.Error("Error getting result about book in the cart item", "id", cartItemdt.BookId, "err", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	cih.l.Info("Successfully getting result about book in the cart item", isInCart)
+
+	c.JSON(201, gin.H{"isInCart": isInCart})
+}
+
 func (cih *cartItemsHandler) AllCartItems(ctx context.Context, c *gin.Context) {
 	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()

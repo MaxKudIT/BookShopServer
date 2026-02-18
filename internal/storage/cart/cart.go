@@ -33,7 +33,7 @@ func (cs *cStorage) CartByUserId(ctx context.Context, userId uuid.UUID) (uuid.UU
 
 func (cs *cStorage) Save(ctx context.Context, cart domain.Cart) error {
 
-	const CreateCartItemsQuery = "INSERT INTO carts (cart_id, user_id, created_at) VALUES ($1, $2, $3)"
+	const CreateCartItemsQuery = "INSERT INTO carts (id, user_id, created_at) VALUES ($1, $2, $3)"
 
 	if _, err := cs.db.ExecContext(ctx, CreateCartItemsQuery, cart.Id, cart.UserId, cart.CreatedAt); err != nil {
 		switch {

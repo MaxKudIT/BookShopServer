@@ -6,6 +6,7 @@ import (
 )
 
 type cartItemsHandler interface {
+	IsInCart(ctx context.Context, c *gin.Context)
 	AllCartItems(ctx context.Context, c *gin.Context)
 	Create(ctx context.Context, c *gin.Context)
 	Delete(ctx context.Context, c *gin.Context)

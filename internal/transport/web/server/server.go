@@ -25,6 +25,8 @@ func (s *server) Create() *gin.Engine {
 		s.pr.PageRegRouters(context.TODO(), maingr)
 		s.br.BookRegRouters(context.TODO(), maingr)
 		s.ubr.UBRegRouters(context.TODO(), maingr)
+		s.cr.CartRegRouters(context.TODO(), maingr)
+		s.cir.CartItemsRegRouters(context.TODO(), maingr)
 	}
 
 	return router

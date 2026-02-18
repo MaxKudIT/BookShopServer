@@ -10,6 +10,37 @@ import (
 	"strings"
 )
 
+func (cis *ciStorage) IsInCart(ctx context.Context, cartId uuid.UUID, bookId uuid.UUID) (bool, error) {
+	isInCart := false
+	const IsInCartQuery = `
+    SELECT	
+        EXISTS(
+        SELECT 1 
+        FROM cart_items ci
+        WHERE ci.cart_id = $1 
+          AND ci.book_id = $2
+    )`
+	if err := cis.db.QueryRowContext(ctx, IsInCartQuery, cartId, bookId).Scan(
+		&isInCart); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			cis.l.Error("book in cart not found", "error", err)
+			return false, err
+		case errors.Is(err, context.Canceled):
+			cis.l.Warn("Query cancelled", "error", err)
+			return false, err
+		case errors.Is(err, context.DeadlineExceeded):
+			cis.l.Warn("Query timed out", "error", err)
+			return false, err
+		default:
+			cis.l.Error("Query failed", "error", err)
+			return false, err
+		}
+	}
+	cis.l.Info("Successfully got result about book in the cart", "id", bookId)
+	return isInCart, nil
+}
+
 func (cis *ciStorage) AllCartItems(ctx context.Context, cartId uuid.UUID) ([]domain.CartItemPreview, error) {
 
 	cartItems := make([]domain.CartItemPreview, 0)

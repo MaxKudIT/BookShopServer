@@ -8,6 +8,7 @@ import (
 )
 
 type cartItemsService interface {
+	IsInCart(ctx context.Context, firebaseId string, bookId uuid.UUID) (bool, error)
 	AllCartItems(ctx context.Context, firebaseId string) ([]domain.CartItemPreview, error)
 	Create(ctx context.Context, firebaseId string, cartItem domain.CartItem) (uuid.UUID, error)
 	Delete(ctx context.Context, bookIds []uuid.UUID, firebaseId string) error

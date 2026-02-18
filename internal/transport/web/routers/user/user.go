@@ -11,7 +11,7 @@ func (ur *userRouter) UserRegRouters(ctx context.Context, gr *gin.RouterGroup) {
 	{
 
 		Users.POST("/create", func(c *gin.Context) { ur.uh.Create(c.Request.Context(), c) })
-		Users.DELETE("/", func(c *gin.Context) { ur.uh.Delete(c.Request.Context(), c) }) //не нужен
+		Users.DELETE("", func(c *gin.Context) { ur.uh.Delete(c.Request.Context(), c) }) //не нужен
 
 	}
 
