@@ -29,6 +29,14 @@ type cartRouter interface {
 	CartRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
+type favItemsRouter interface {
+	FavItemsRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
+type favRouter interface {
+	FavRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
 type server struct {
 	ur  userRouter
 	br  bookRouter
@@ -36,8 +44,10 @@ type server struct {
 	ubr ubRouter
 	cir cartItemsRouter
 	cr  cartRouter
+	fir favItemsRouter
+	fr  favRouter
 }
 
-func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter) *server {
-	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr}
+func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter) *server {
+	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr}
 }

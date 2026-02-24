@@ -34,7 +34,7 @@ func (ciserv *cartItemService) AllCartItems(ctx context.Context, firebaseId stri
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
-		ciserv.l.Error("cart saving failed", "err", err)
+		ciserv.l.Error("failed getting id by firebaseId", "err", err)
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func (ciserv *cartItemService) Create(ctx context.Context, firebaseId string, ca
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
-		ciserv.l.Error("cart saving failed", "err", err)
+		ciserv.l.Error("failed getting id by firebaseId", "err", err)
 		return uuid.Nil, err
 	}
 
@@ -83,7 +83,7 @@ func (ciserv *cartItemService) Delete(ctx context.Context, bookIds []uuid.UUID, 
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
-		ciserv.l.Error("cart saving failed", "err", err)
+		ciserv.l.Error("failed getting id by firebaseId", "err", err)
 		return err
 	}
 

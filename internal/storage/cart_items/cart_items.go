@@ -110,6 +110,11 @@ func (cis *ciStorage) Save(ctx context.Context, cartItem domain.CartItem) error 
 
 func (cis *ciStorage) Delete(ctx context.Context, bookIds []uuid.UUID, cartId uuid.UUID) error {
 
+	if len(bookIds) == 0 {
+		cis.l.Warn("No book IDs provided for deletion", "cartId", cartId)
+		return nil
+	}
+
 	var DeleteCartItemsQuery = "DELETE FROM cart_items WHERE cart_id = $1 AND book_id IN ("
 
 	args := make([]any, 0, len(bookIds)+1)
