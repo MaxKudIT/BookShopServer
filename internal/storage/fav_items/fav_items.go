@@ -41,6 +41,29 @@ func (fis *fiStorage) IsInFavs(ctx context.Context, favId uuid.UUID, bookId uuid
 	return isInFavs, nil
 }
 
+func (fis *fiStorage) Count(ctx context.Context, favId uuid.UUID) (int, error) {
+
+	var count int = 0
+
+	const GetCountFavItemsQuery = "SELECT COUNT(*) FROM fav_items where fav_id = $1"
+
+	if err := fis.db.QueryRowContext(ctx, GetCountFavItemsQuery, favId).Scan(&count); err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			fis.l.Warn("Query cancelled", "error", err)
+			return 0, err
+		case errors.Is(err, context.DeadlineExceeded):
+			fis.l.Warn("Query timed out", "error", err)
+			return 0, err
+		default:
+			fis.l.Error("Query failed", "error", err)
+			return 0, err
+		}
+	}
+	fis.l.Info("Successfully get count items", "id", favId)
+	return count, nil
+}
+
 func (fis *fiStorage) AllFavItems(ctx context.Context, favId uuid.UUID) ([]domain.FavItemPreview, error) {
 
 	favItems := make([]domain.FavItemPreview, 0)

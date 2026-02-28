@@ -45,12 +45,47 @@ func (bh *bookHandler) AllMyBooks(ctx context.Context, c *gin.Context) {
 	}
 
 	fmt.Println("firebaseid:", firebaseid)
+	//select {
+	//case <-connew.Done():
+	//	if errors.Is(connew.Err(), context.DeadlineExceeded) { 504
+	//		c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
+	//			"error": "Превышено время ожидания",
+	//		})
+	//		return
+	//	}
+	//default:
+	//
+	//}
+
+	//if true { //иммитация падения сервиса
+	//	c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{ 503
+	//		"error":       "Сервис временно недоступен",
+	//		"retry_after": 30,
+	//	})
+	//	return
+	//}
+
 	books, err := bh.bs.AllMyBooks(connew, firebaseid.(string))
 	if err != nil {
 		bh.l.Error("error while getting my books", "error", err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()}) //500
 		return
 	}
+
+	//_, err = http.Get("https://external-api.com") 502
+	//if err != nil {
+	//	c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{
+	//		"error": "Ошибка при обращении к внешнему сервису",
+	//	})
+	//	return
+	//}
+
+	//c.AbortWithStatusJSON(http.StatusNotImplemented, gin.H{ 501
+	//	"error":   "Метод не реализован",
+	//	"method":  c.Request.Method,
+	//	"path":    c.Request.URL.Path,
+	//	"message": "Этот функционал появится в следующем обновлении",
+	//})
 
 	bh.l.Info("successfully got my books")
 	c.JSON(http.StatusOK, gin.H{"Books": books})

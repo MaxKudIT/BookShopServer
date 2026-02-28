@@ -15,6 +15,7 @@ type favItemsStorage interface {
 	IsInFavs(ctx context.Context, favId uuid.UUID, bookId uuid.UUID) (bool, error)
 	AllFavItems(ctx context.Context, favId uuid.UUID) ([]domain.FavItemPreview, error)
 	Save(ctx context.Context, favItem domain.FavItem) error
+	Count(ctx context.Context, favId uuid.UUID) (int, error)
 	Delete(ctx context.Context, bookIds []uuid.UUID, favId uuid.UUID) error
 }
 

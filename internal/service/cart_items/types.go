@@ -13,9 +13,13 @@ type cartStorage interface {
 
 type cartItemStorage interface {
 	AllCartItems(ctx context.Context, cartId uuid.UUID) ([]domain.CartItemPreview, error)
+	AllCartItemsId(ctx context.Context, cartId uuid.UUID) ([]uuid.UUID, error)
 	Save(ctx context.Context, cartItem domain.CartItem) error
+	SaveFromFavs(ctx context.Context, cartItems []domain.CartItem) error
 	Delete(ctx context.Context, bookIds []uuid.UUID, cartId uuid.UUID) error
 	IsInCart(ctx context.Context, cartId uuid.UUID, bookId uuid.UUID) (bool, error)
+	AreAllInCart(ctx context.Context, cartId uuid.UUID, bookIds []uuid.UUID) (bool, error)
+	Count(ctx context.Context, cartId uuid.UUID) (int, error)
 }
 
 type userStorage interface {

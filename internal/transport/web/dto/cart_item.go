@@ -10,6 +10,10 @@ type CartItemDTO struct {
 	BookId uuid.UUID
 }
 
+type CartItemsDTO struct {
+	BookIds []uuid.UUID
+}
+
 type CartItemsDelDTO struct {
 	BookIds []uuid.UUID
 }

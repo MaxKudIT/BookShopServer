@@ -43,6 +43,28 @@ func (fih *favItemsHandler) IsInFavs(ctx context.Context, c *gin.Context) {
 	c.JSON(201, gin.H{"isInFavs": isInFavs})
 }
 
+func (fih *favItemsHandler) Count(ctx context.Context, c *gin.Context) {
+	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		fih.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	count, err := fih.fiserv.Count(ctxnew, firebaseid.(string))
+	if err != nil {
+		fih.l.Error("error about count in the fav", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	fih.l.Info("Successfully got fav items count")
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
 func (fih *favItemsHandler) AllFavsItems(ctx context.Context, c *gin.Context) {
 	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()

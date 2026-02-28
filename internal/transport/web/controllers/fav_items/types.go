@@ -11,6 +11,7 @@ type favItemsService interface {
 	IsInFavs(ctx context.Context, firebaseId string, bookId uuid.UUID) (bool, error)
 	AllFavsItems(ctx context.Context, firebaseId string) ([]domain.FavItemPreview, error)
 	Create(ctx context.Context, firebaseId string, favItem domain.FavItem) (uuid.UUID, error)
+	Count(ctx context.Context, firebaseId string) (int, error)
 	Delete(ctx context.Context, bookIds []uuid.UUID, firebaseId string) error
 }
 
