@@ -1,0 +1,91 @@
+package reading_sessions
+
+import (
+	"context"
+	"errors"
+
+	"github.com/bookshop/internal/domain"
+	"github.com/google/uuid"
+)
+
+func (rss *readingSessionsStorage) Save(ctx context.Context, readingSession domain.ReadingSession) error {
+	const CreateReadingSessionQuery = `
+		INSERT INTO reading_sessions (id, user_id, book_id, started_at, ended_at, minutes)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+
+	if _, err := rss.db.ExecContext(
+		ctx,
+		CreateReadingSessionQuery,
+		readingSession.Id,
+		readingSession.UserId,
+		readingSession.BookId,
+		readingSession.StartedAt,
+		readingSession.EndedAt,
+		readingSession.Minutes,
+	); err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			rss.l.Warn("Query cancelled", "error", err)
+			return err
+		case errors.Is(err, context.DeadlineExceeded):
+			rss.l.Warn("Query timed out", "error", err)
+			return err
+		default:
+			rss.l.Error("Query failed", "error", err)
+			return err
+		}
+	}
+	rss.l.Info("Successfully saved reading session", "id", readingSession.Id)
+	return nil
+}
+
+func (rss *readingSessionsStorage) AllByUserId(ctx context.Context, userId uuid.UUID) ([]domain.ReadingSession, error) {
+	readingSessions := make([]domain.ReadingSession, 0)
+	const AllReadingSessionsQuery = `
+		SELECT id, user_id, book_id, started_at, ended_at, minutes
+		FROM reading_sessions
+		WHERE user_id = $1
+		ORDER BY started_at DESC
+	`
+
+	rows, err := rss.db.QueryContext(ctx, AllReadingSessionsQuery, userId)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			rss.l.Warn("Query cancelled", "error", err)
+			return nil, err
+		case errors.Is(err, context.DeadlineExceeded):
+			rss.l.Warn("Query timed out", "error", err)
+			return nil, err
+		default:
+			rss.l.Error("Query failed", "error", err)
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var currentObject domain.ReadingSession
+		if err := rows.Scan(
+			&currentObject.Id,
+			&currentObject.UserId,
+			&currentObject.BookId,
+			&currentObject.StartedAt,
+			&currentObject.EndedAt,
+			&currentObject.Minutes,
+		); err != nil {
+			rss.l.Error("Scan failed", "error", err)
+			return nil, err
+		}
+		readingSessions = append(readingSessions, currentObject)
+	}
+
+	if err := rows.Err(); err != nil {
+		rss.l.Error("Rows failed", "error", err)
+		return nil, err
+	}
+
+	rss.l.Info("Successfully got reading sessions", "userId", userId)
+	return readingSessions, nil
+}

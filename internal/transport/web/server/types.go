@@ -37,6 +37,22 @@ type favRouter interface {
 	FavRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
+type readingRouter interface {
+	ReadingRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
+type readingSessionsRouter interface {
+	ReadingSessionsRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
+type bookRevsRouter interface {
+	BookRevsRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
+type statsRouter interface {
+	StatsRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
 type server struct {
 	ur  userRouter
 	br  bookRouter
@@ -46,8 +62,12 @@ type server struct {
 	cr  cartRouter
 	fir favItemsRouter
 	fr  favRouter
+	rr  readingRouter
+	rsr readingSessionsRouter
+	brr bookRevsRouter
+	sr  statsRouter
 }
 
-func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter) *server {
-	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr}
+func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter, rr readingRouter, rsr readingSessionsRouter, brr bookRevsRouter, sr statsRouter) *server {
+	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr, rr: rr, rsr: rsr, brr: brr, sr: sr}
 }

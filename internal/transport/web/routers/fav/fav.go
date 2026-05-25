@@ -1,6 +1,5 @@
 package fav
 
-import "C"
 import (
 	"context"
 	"github.com/bookshop/internal/transport/web/middleware"

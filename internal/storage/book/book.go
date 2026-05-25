@@ -196,3 +196,26 @@ func (bs *bookStorage) IsMyBook(ctx context.Context, userId uuid.UUID, bookId uu
 	bs.l.Info("Successfully got result about purchase", "id", bookId)
 	return isMy, nil
 }
+
+func (bs *bookStorage) PagesCountById(ctx context.Context, bookId uuid.UUID) (int, error) {
+	var pagesCount int
+	const GetPagesCountQuery = "SELECT pages_count FROM books WHERE id = $1"
+	if err := bs.db.QueryRowContext(ctx, GetPagesCountQuery, bookId).Scan(&pagesCount); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			bs.l.Error("book not found", "error", err)
+			return 0, err
+		case errors.Is(err, context.Canceled):
+			bs.l.Warn("Query cancelled", "error", err)
+			return 0, err
+		case errors.Is(err, context.DeadlineExceeded):
+			bs.l.Warn("Query timed out", "error", err)
+			return 0, err
+		default:
+			bs.l.Error("Query failed", "error", err)
+			return 0, err
+		}
+	}
+	bs.l.Info("Successfully got pages count", "bookId", bookId)
+	return pagesCount, nil
+}
