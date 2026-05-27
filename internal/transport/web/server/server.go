@@ -33,6 +33,7 @@ func (s *server) Create() *gin.Engine {
 		s.rsr.ReadingSessionsRegRouters(context.TODO(), maingr)
 		s.brr.BookRevsRegRouters(context.TODO(), maingr)
 		s.sr.StatsRegRouters(context.TODO(), maingr)
+		s.recr.RecommendationRegRouters(context.TODO(), maingr)
 	}
 
 	return router

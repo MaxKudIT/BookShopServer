@@ -1,8 +1,9 @@
 package domain
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Book struct {
@@ -36,10 +37,10 @@ const (
 type BookPreview struct {
 	Id       uuid.UUID
 	Title    string
+	Author   string
 	Genre    Genre
 	Price    float64
 	Discount int
 	ImageUrl string
-	IsMine   bool
 	Rate     float64
 }

@@ -48,7 +48,8 @@ LEFT JOIN users_books ub ON b.id = ub.book_id
 
 	for rows.Next() {
 		var currentObject domain.BookPreview
-		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate, &currentObject.IsMine); err != nil {
+		var isMine bool
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate, &isMine); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}

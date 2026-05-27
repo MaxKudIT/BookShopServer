@@ -53,21 +53,26 @@ type statsRouter interface {
 	StatsRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
-type server struct {
-	ur  userRouter
-	br  bookRouter
-	pr  pageRouter
-	ubr ubRouter
-	cir cartItemsRouter
-	cr  cartRouter
-	fir favItemsRouter
-	fr  favRouter
-	rr  readingRouter
-	rsr readingSessionsRouter
-	brr bookRevsRouter
-	sr  statsRouter
+type recommendationRouter interface {
+	RecommendationRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
-func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter, rr readingRouter, rsr readingSessionsRouter, brr bookRevsRouter, sr statsRouter) *server {
-	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr, rr: rr, rsr: rsr, brr: brr, sr: sr}
+type server struct {
+	ur   userRouter
+	br   bookRouter
+	pr   pageRouter
+	ubr  ubRouter
+	cir  cartItemsRouter
+	cr   cartRouter
+	fir  favItemsRouter
+	fr   favRouter
+	rr   readingRouter
+	rsr  readingSessionsRouter
+	brr  bookRevsRouter
+	sr   statsRouter
+	recr recommendationRouter
+}
+
+func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter, rr readingRouter, rsr readingSessionsRouter, brr bookRevsRouter, sr statsRouter, recr recommendationRouter) *server {
+	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr, rr: rr, rsr: rsr, brr: brr, sr: sr, recr: recr}
 }
