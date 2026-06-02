@@ -16,9 +16,9 @@ type cartItemStorage interface {
 	AllCartItemsId(ctx context.Context, cartId uuid.UUID) ([]uuid.UUID, error)
 	Save(ctx context.Context, cartItem domain.CartItem) error
 	SaveFromFavs(ctx context.Context, cartItems []domain.CartItem) error
-	Delete(ctx context.Context, bookIds []uuid.UUID, cartId uuid.UUID) error
-	IsInCart(ctx context.Context, cartId uuid.UUID, bookId uuid.UUID) (bool, error)
-	AreAllInCart(ctx context.Context, cartId uuid.UUID, bookIds []uuid.UUID) (bool, error)
+	Delete(ctx context.Context, physicalBookIds []uuid.UUID, cartId uuid.UUID) error
+	IsInCart(ctx context.Context, cartId uuid.UUID, physicalBookId uuid.UUID) (bool, error)
+	AreAllInCart(ctx context.Context, cartId uuid.UUID, physicalBookIds []uuid.UUID) (bool, error)
 	Count(ctx context.Context, cartId uuid.UUID) (int, error)
 }
 

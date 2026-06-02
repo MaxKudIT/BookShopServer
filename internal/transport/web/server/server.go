@@ -32,8 +32,14 @@ func (s *server) Create() *gin.Engine {
 		s.rr.ReadingRegRouters(context.TODO(), maingr)
 		s.rsr.ReadingSessionsRegRouters(context.TODO(), maingr)
 		s.brr.BookRevsRegRouters(context.TODO(), maingr)
+		s.bvr.BookViewsRegRouters(context.TODO(), maingr)
 		s.sr.StatsRegRouters(context.TODO(), maingr)
 		s.recr.RecommendationRegRouters(context.TODO(), maingr)
+		s.usr.UserSubscriptionsRegRouters(context.TODO(), maingr)
+		s.spr.SubscriptionPaymentsRegRouters(context.TODO(), maingr)
+		s.pbr.PhysicalBooksRegRouters(context.TODO(), maingr)
+		s.or.OrdersRegRouters(context.TODO(), maingr)
+		s.oir.OrderItemsRegRouters(context.TODO(), maingr)
 	}
 
 	return router

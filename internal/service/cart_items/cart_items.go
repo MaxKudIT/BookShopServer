@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (ciserv *cartItemService) IsInCart(ctx context.Context, firebaseId string, bookId uuid.UUID) (bool, error) {
+func (ciserv *cartItemService) IsInCart(ctx context.Context, firebaseId string, physicalBookId uuid.UUID) (bool, error) {
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
@@ -21,13 +21,13 @@ func (ciserv *cartItemService) IsInCart(ctx context.Context, firebaseId string, 
 		return false, err
 	}
 
-	IsInCart, err := ciserv.cis.IsInCart(ctx, cartId, bookId)
+	IsInCart, err := ciserv.cis.IsInCart(ctx, cartId, physicalBookId)
 	if err != nil {
-		ciserv.l.Error("result about book in the cart failed", "err", err)
+		ciserv.l.Error("result about physical book in the cart failed", "err", err)
 		return false, err
 	}
 
-	ciserv.l.Info("get a result book in thr cart success")
+	ciserv.l.Info("get a result physical book in thr cart success")
 	return IsInCart, nil
 }
 
@@ -55,7 +55,7 @@ func (ciserv *cartItemService) Count(ctx context.Context, firebaseId string) (in
 	return count, nil
 }
 
-func (ciserv *cartItemService) AreAllInCart(ctx context.Context, firebaseId string, bookIds []uuid.UUID) (bool, error) {
+func (ciserv *cartItemService) AreAllInCart(ctx context.Context, firebaseId string, physicalBookIds []uuid.UUID) (bool, error) {
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
@@ -69,7 +69,7 @@ func (ciserv *cartItemService) AreAllInCart(ctx context.Context, firebaseId stri
 		return false, err
 	}
 
-	IsInCart, err := ciserv.cis.AreAllInCart(ctx, cartId, bookIds)
+	IsInCart, err := ciserv.cis.AreAllInCart(ctx, cartId, physicalBookIds)
 	if err != nil {
 		ciserv.l.Error("result about books in the cart failed", "err", err)
 		return false, err
@@ -122,10 +122,10 @@ func (ciserv *cartItemService) Create(ctx context.Context, firebaseId string, ca
 
 	if err := ciserv.cis.Save(ctx, cartItem); err != nil {
 		ciserv.l.Error("Error saving cart item", "error", err)
-		return cartItem.BookId, err
+		return cartItem.PhysicalBookId, err
 	}
 	ciserv.l.Info("Successfully created cart item")
-	return cartItem.BookId, nil
+	return cartItem.PhysicalBookId, nil
 }
 
 func (ciserv *cartItemService) CreateItems(ctx context.Context, firebaseId string, cartItems []domain.CartItem) (uuid.UUID, error) {
@@ -160,7 +160,7 @@ func (ciserv *cartItemService) CreateItems(ctx context.Context, firebaseId strin
 	}
 
 	for _, item := range cartItems {
-		if !isExistsMap[item.BookId] {
+		if !isExistsMap[item.PhysicalBookId] {
 			filteredItems = append(filteredItems, item)
 		}
 	}
@@ -173,7 +173,7 @@ func (ciserv *cartItemService) CreateItems(ctx context.Context, firebaseId strin
 	return cartId, nil
 }
 
-func (ciserv *cartItemService) Delete(ctx context.Context, bookIds []uuid.UUID, firebaseId string) error {
+func (ciserv *cartItemService) Delete(ctx context.Context, physicalBookIds []uuid.UUID, firebaseId string) error {
 
 	userId, err := ciserv.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
@@ -188,7 +188,7 @@ func (ciserv *cartItemService) Delete(ctx context.Context, bookIds []uuid.UUID, 
 		return err
 	}
 
-	if err := ciserv.cis.Delete(ctx, bookIds, cartId); err != nil {
+	if err := ciserv.cis.Delete(ctx, physicalBookIds, cartId); err != nil {
 		ciserv.l.Error("Error deleting cart items", "error", err)
 		return err
 	}

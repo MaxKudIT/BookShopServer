@@ -17,6 +17,10 @@ type bookStorage interface {
 	PagesCountById(ctx context.Context, bookId uuid.UUID) (int, error)
 }
 
+type historyStorage interface {
+	SaveReadingBook(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) error
+}
+
 type readingStorage interface {
 	Start(ctx context.Context, userId uuid.UUID, bookId uuid.UUID, sessionId uuid.UUID, startedAt time.Time) (domain.ReadingState, error)
 	UpdateProgress(ctx context.Context, userId uuid.UUID, bookId uuid.UUID, currentPage int, progressPercent int, status domain.Status) (domain.ReadingState, error)
@@ -28,9 +32,10 @@ type readingService struct {
 	rs readingStorage
 	us userStorage
 	bs bookStorage
+	hs historyStorage
 	l  *slog.Logger
 }
 
-func New(rs readingStorage, us userStorage, bs bookStorage, l *slog.Logger) *readingService {
-	return &readingService{rs: rs, us: us, bs: bs, l: l}
+func New(rs readingStorage, us userStorage, bs bookStorage, hs historyStorage, l *slog.Logger) *readingService {
+	return &readingService{rs: rs, us: us, bs: bs, hs: hs, l: l}
 }

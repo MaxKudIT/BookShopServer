@@ -11,6 +11,16 @@ import (
 type readingSessionsStorage interface {
 	Save(ctx context.Context, readingSession domain.ReadingSession) error
 	AllByUserId(ctx context.Context, userId uuid.UUID) ([]domain.ReadingSession, error)
+	LastReadingBookRecords(ctx context.Context, userId uuid.UUID, limit int) ([]domain.LastReadingBook, error)
+}
+
+type bookStorage interface {
+	ReadingBookPreviews(ctx context.Context, lastReadingBooks []domain.LastReadingBook) ([]domain.ReadingBookPreview, error)
+}
+
+type historyStorage interface {
+	LastReadingBooks(ctx context.Context, userId uuid.UUID, limit int) ([]domain.LastReadingBook, error)
+	WarmReadingBooks(ctx context.Context, userId uuid.UUID, lastReadingBooks []domain.LastReadingBook, limit int) error
 }
 
 type userStorage interface {
@@ -19,10 +29,12 @@ type userStorage interface {
 
 type readingSessionsService struct {
 	rss readingSessionsStorage
+	bs  bookStorage
+	hs  historyStorage
 	us  userStorage
 	l   *slog.Logger
 }
 
-func New(rss readingSessionsStorage, us userStorage, l *slog.Logger) *readingSessionsService {
-	return &readingSessionsService{rss: rss, us: us, l: l}
+func New(rss readingSessionsStorage, bs bookStorage, hs historyStorage, us userStorage, l *slog.Logger) *readingSessionsService {
+	return &readingSessionsService{rss: rss, bs: bs, hs: hs, us: us, l: l}
 }

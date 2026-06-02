@@ -2,22 +2,21 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 func Connection(redisOptions *redis.Options) (*redis.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*3)
 	rdb := redis.NewClient(redisOptions)
 
-	pong, err := rdb.Ping(ctx).Result()
-	if err != nil {
-		panic(err)
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
+		_ = rdb.Close()
+		return nil, err
 	}
-	fmt.Println("Connected to Redis:", pong)
 
 	return rdb, nil
 }

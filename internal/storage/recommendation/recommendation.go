@@ -79,8 +79,9 @@ func (rs *recommendationStorage) CartRecommendation(ctx context.Context, userId 
 			WHERE user_uid = $1
 		),
 		cart_books AS (
-			SELECT ci.book_id
+			SELECT pb.book_id
 			FROM cart_items ci
+			INNER JOIN physical_books pb ON pb.id = ci.physical_book_id
 			INNER JOIN carts c ON c.id = ci.cart_id
 			WHERE c.user_id = $1
 		),
@@ -218,9 +219,10 @@ func (rs *recommendationStorage) TrendRecommendation(ctx context.Context, userId
 
 			UNION ALL
 
-			SELECT ci.book_id, COUNT(*) * 20 AS score
+			SELECT pb.book_id, COUNT(*) * 20 AS score
 			FROM cart_items ci
-			GROUP BY ci.book_id
+			INNER JOIN physical_books pb ON pb.id = ci.physical_book_id
+			GROUP BY pb.book_id
 
 			UNION ALL
 

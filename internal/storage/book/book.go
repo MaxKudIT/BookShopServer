@@ -5,8 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (bs *bookStorage) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error) {
@@ -219,4 +222,148 @@ func (bs *bookStorage) PagesCountById(ctx context.Context, bookId uuid.UUID) (in
 	}
 	bs.l.Info("Successfully got pages count", "bookId", bookId)
 	return pagesCount, nil
+}
+
+func (bs *bookStorage) BookViewPreviews(ctx context.Context, bookViews []domain.BookView) ([]domain.BookViewPreview, error) {
+	if len(bookViews) == 0 {
+		return make([]domain.BookViewPreview, 0), nil
+	}
+
+	bookIds := make([]uuid.UUID, 0, len(bookViews))
+	viewedAtByBookId := make(map[uuid.UUID]time.Time, len(bookViews))
+	for _, bookView := range bookViews {
+		bookIds = append(bookIds, bookView.BookId)
+		viewedAtByBookId[bookView.BookId] = bookView.ViewedAt
+	}
+
+	previews := make([]domain.BookViewPreview, 0, len(bookViews))
+	const BookViewPreviewsQuery = `
+		SELECT
+			id,
+			image_url,
+			title,
+			author,
+			created_date,
+			genre,
+			rate,
+			pages_count
+		FROM books
+		WHERE id = ANY($1)
+		ORDER BY array_position($1::uuid[], id)
+	`
+
+	rows, err := bs.db.QueryContext(ctx, BookViewPreviewsQuery, pq.Array(bookIds))
+	if err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			bs.l.Warn("Query cancelled", "error", err)
+			return nil, err
+		case errors.Is(err, context.DeadlineExceeded):
+			bs.l.Warn("Query timed out", "error", err)
+			return nil, err
+		default:
+			bs.l.Error("Query failed", "error", err)
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var currentObject domain.BookViewPreview
+		if err := rows.Scan(
+			&currentObject.Id,
+			&currentObject.ImageUrl,
+			&currentObject.Title,
+			&currentObject.Author,
+			&currentObject.CreatedDate,
+			&currentObject.Genre,
+			&currentObject.Rate,
+			&currentObject.PagesCount,
+		); err != nil {
+			bs.l.Error("Scan failed", "error", err)
+			return nil, err
+		}
+		currentObject.ViewedAt = viewedAtByBookId[currentObject.Id]
+		previews = append(previews, currentObject)
+	}
+
+	if err := rows.Err(); err != nil {
+		bs.l.Error("Rows failed", "error", err)
+		return nil, err
+	}
+
+	bs.l.Info("Successfully got book view previews")
+	return previews, nil
+}
+
+func (bs *bookStorage) ReadingBookPreviews(ctx context.Context, lastReadingBooks []domain.LastReadingBook) ([]domain.ReadingBookPreview, error) {
+	if len(lastReadingBooks) == 0 {
+		return make([]domain.ReadingBookPreview, 0), nil
+	}
+
+	bookIds := make([]uuid.UUID, 0, len(lastReadingBooks))
+	lastStartedAtByBookId := make(map[uuid.UUID]time.Time, len(lastReadingBooks))
+	for _, lastReadingBook := range lastReadingBooks {
+		bookIds = append(bookIds, lastReadingBook.BookId)
+		lastStartedAtByBookId[lastReadingBook.BookId] = lastReadingBook.LastStartedAt
+	}
+
+	previews := make([]domain.ReadingBookPreview, 0, len(lastReadingBooks))
+	const ReadingBookPreviewsQuery = `
+		SELECT
+			id,
+			image_url,
+			title,
+			author,
+			rate,
+			genre,
+			created_date,
+			pages_count
+		FROM books
+		WHERE id = ANY($1)
+		ORDER BY array_position($1::uuid[], id)
+	`
+
+	rows, err := bs.db.QueryContext(ctx, ReadingBookPreviewsQuery, pq.Array(bookIds))
+	if err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			bs.l.Warn("Query cancelled", "error", err)
+			return nil, err
+		case errors.Is(err, context.DeadlineExceeded):
+			bs.l.Warn("Query timed out", "error", err)
+			return nil, err
+		default:
+			bs.l.Error("Query failed", "error", err)
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var currentObject domain.ReadingBookPreview
+		if err := rows.Scan(
+			&currentObject.Id,
+			&currentObject.ImageUrl,
+			&currentObject.Title,
+			&currentObject.Author,
+			&currentObject.Rate,
+			&currentObject.Genre,
+			&currentObject.CreatedDate,
+			&currentObject.PagesCount,
+		); err != nil {
+			bs.l.Error("Scan failed", "error", err)
+			return nil, err
+		}
+		currentObject.LastStartedAt = lastStartedAtByBookId[currentObject.Id]
+		previews = append(previews, currentObject)
+	}
+
+	if err := rows.Err(); err != nil {
+		bs.l.Error("Rows failed", "error", err)
+		return nil, err
+	}
+
+	bs.l.Info("Successfully got reading book previews")
+	return previews, nil
 }

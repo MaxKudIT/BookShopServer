@@ -11,6 +11,7 @@ func (rsr *readingSessionsRouter) ReadingSessionsRegRouters(ctx context.Context,
 	readingSessions := gr.Group("/reading-sessions")
 	{
 		readingSessions.POST("", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { rsr.rsh.Create(c.Request.Context(), c) })
+		readingSessions.GET("/last-books", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { rsr.rsh.LastReadingBooks(c.Request.Context(), c) })
 		readingSessions.GET("", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { rsr.rsh.All(c.Request.Context(), c) })
 	}
 }

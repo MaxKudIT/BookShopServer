@@ -31,9 +31,9 @@ func (cih *cartItemsHandler) IsInCart(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	isInCart, err := cih.ciserv.IsInCart(ctxnew, firebaseid.(string), cartItemdt.BookId)
+	isInCart, err := cih.ciserv.IsInCart(ctxnew, firebaseid.(string), cartItemdt.PhysicalBookId)
 	if err != nil {
-		cih.l.Error("Error getting result about book in the cart item", "id", cartItemdt.BookId, "err", err)
+		cih.l.Error("Error getting result about physical book in the cart item", "id", cartItemdt.PhysicalBookId, "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -65,7 +65,7 @@ func (cih *cartItemsHandler) AreAllInCart(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	isInCart, err := cih.ciserv.AreAllInCart(ctxnew, firebaseid.(string), cartItemsdt.BookIds)
+	isInCart, err := cih.ciserv.AreAllInCart(ctxnew, firebaseid.(string), cartItemsdt.PhysicalBookIds)
 	if err != nil {
 		cih.l.Error("Error getting result about books in the cart item", "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -143,18 +143,18 @@ func (cih *cartItemsHandler) Create(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	cartItem := dto.CartItemToDomain(time.Now(), cartItemdt.BookId)
+	cartItem := dto.CartItemToDomain(time.Now(), cartItemdt.PhysicalBookId)
 
 	_, err := cih.ciserv.Create(ctxnew, firebaseid.(string), cartItem)
 	if err != nil {
-		cih.l.Error("Error creating cart item", "id", cartItem.BookId, "err", err)
+		cih.l.Error("Error creating cart item", "id", cartItem.PhysicalBookId, "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	cih.l.Info("Successfully created cart item", "id", cartItem.BookId)
-	c.JSON(201, gin.H{"id": cartItem.BookId})
+	cih.l.Info("Successfully created cart item", "id", cartItem.PhysicalBookId)
+	c.JSON(201, gin.H{"id": cartItem.PhysicalBookId})
 }
 
 func (cih *cartItemsHandler) CreateItems(ctx context.Context, c *gin.Context) {
@@ -178,9 +178,9 @@ func (cih *cartItemsHandler) CreateItems(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	var cartItems = make([]domain.CartItem, 0, len(cartItemsdt.BookIds))
-	for _, bookId := range cartItemsdt.BookIds {
-		cartItem := dto.CartItemToDomain(time.Now(), bookId)
+	var cartItems = make([]domain.CartItem, 0, len(cartItemsdt.PhysicalBookIds))
+	for _, physicalBookId := range cartItemsdt.PhysicalBookIds {
+		cartItem := dto.CartItemToDomain(time.Now(), physicalBookId)
 		cartItems = append(cartItems, cartItem)
 	}
 
@@ -201,16 +201,16 @@ func (cih *cartItemsHandler) Delete(ctx context.Context, c *gin.Context) {
 	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	bookIdsStr := c.QueryArray("id")
+	physicalBookIdsStr := c.QueryArray("id")
 
-	bookIds := make([]uuid.UUID, 0, len(bookIdsStr))
-	for _, idStr := range bookIdsStr {
+	physicalBookIds := make([]uuid.UUID, 0, len(physicalBookIdsStr))
+	for _, idStr := range physicalBookIdsStr {
 		id, err := uuid.Parse(idStr)
 		if err != nil {
 			c.JSON(400, gin.H{"error": "invalid UUID: " + idStr})
 			return
 		}
-		bookIds = append(bookIds, id)
+		physicalBookIds = append(physicalBookIds, id)
 	}
 
 	firebaseid, exists := c.Get("firebase_id")
@@ -220,7 +220,7 @@ func (cih *cartItemsHandler) Delete(ctx context.Context, c *gin.Context) {
 		return
 	}
 
-	if err := cih.ciserv.Delete(ctxnew, bookIds, firebaseid.(string)); err != nil {
+	if err := cih.ciserv.Delete(ctxnew, physicalBookIds, firebaseid.(string)); err != nil {
 		cih.l.Error("Error deleting cart items", "ids", "err", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error":   "Invalid request payload",

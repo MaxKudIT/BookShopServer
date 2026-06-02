@@ -6,11 +6,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type hRedisStorage struct {
+type historyStorage struct {
 	rs *redis.Client
 	l  *slog.Logger
 }
 
-func New(rs *redis.Client, l *slog.Logger) *hRedisStorage {
-	return &hRedisStorage{rs: rs, l: l}
+func New(rs *redis.Client, l *slog.Logger) *historyStorage {
+	return &historyStorage{rs: rs, l: l}
 }

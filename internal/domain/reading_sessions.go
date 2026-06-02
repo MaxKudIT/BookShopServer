@@ -14,3 +14,20 @@ type ReadingSession struct {
 	EndedAt   *time.Time
 	Minutes   int
 }
+
+type LastReadingBook struct {
+	BookId        uuid.UUID
+	LastStartedAt time.Time
+}
+
+type ReadingBookPreview struct {
+	Id            uuid.UUID
+	ImageUrl      string
+	Title         string
+	Author        string
+	Rate          float64
+	Genre         Genre
+	CreatedDate   time.Time
+	PagesCount    int
+	LastStartedAt time.Time
+}

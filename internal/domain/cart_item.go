@@ -6,17 +6,20 @@ import (
 )
 
 type CartItem struct {
-	CartId    uuid.UUID
-	BookId    uuid.UUID
-	CreatedAt time.Time
+	CartId         uuid.UUID
+	PhysicalBookId uuid.UUID
+	CreatedAt      time.Time
 }
 
 type CartItemPreview struct {
-	Id       uuid.UUID
-	ImageUrl string
-	Title    string
-	Author   string
-	Price    float64
-	Discount int
-	Rate     float64
+	Id         uuid.UUID
+	BookId     uuid.UUID
+	ImageUrl   string
+	Title      string
+	Author     string
+	Price      float64
+	Discount   int
+	Rate       float64
+	Format     string
+	StockCount int
 }

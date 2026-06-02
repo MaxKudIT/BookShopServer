@@ -7,21 +7,21 @@ import (
 )
 
 type CartItemDTO struct {
-	BookId uuid.UUID
+	PhysicalBookId uuid.UUID `json:"physicalBookId"`
 }
 
 type CartItemsDTO struct {
-	BookIds []uuid.UUID
+	PhysicalBookIds []uuid.UUID `json:"physicalBookIds"`
 }
 
 type CartItemsDelDTO struct {
-	BookIds []uuid.UUID
+	PhysicalBookIds []uuid.UUID `json:"physicalBookIds"`
 }
 
-func CartItemToDomain(createdAt time.Time, bookId uuid.UUID) domain.CartItem {
+func CartItemToDomain(createdAt time.Time, physicalBookId uuid.UUID) domain.CartItem {
 	return domain.CartItem{
-		CartId:    uuid.Nil,
-		BookId:    bookId,
-		CreatedAt: createdAt,
+		CartId:         uuid.Nil,
+		PhysicalBookId: physicalBookId,
+		CreatedAt:      createdAt,
 	}
 }

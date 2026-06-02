@@ -9,6 +9,7 @@ import (
 type readingSessionsHandler interface {
 	Create(ctx context.Context, c *gin.Context)
 	All(ctx context.Context, c *gin.Context)
+	LastReadingBooks(ctx context.Context, c *gin.Context)
 }
 
 type readingSessionsRouter struct {

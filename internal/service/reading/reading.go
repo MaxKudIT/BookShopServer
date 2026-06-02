@@ -21,6 +21,13 @@ func (rserv *readingService) Start(ctx context.Context, firebaseId string, bookI
 		rserv.l.Error("Error starting reading", "error", err)
 		return domain.ReadingState{}, err
 	}
+
+	if rserv.hs != nil {
+		if err := rserv.hs.SaveReadingBook(ctx, userId, bookId); err != nil {
+			rserv.l.Warn("Error saving last reading book to redis", "error", err)
+		}
+	}
+
 	rserv.l.Info("Successfully started reading", "sessionId", readingState.SessionId)
 	return readingState, nil
 }
