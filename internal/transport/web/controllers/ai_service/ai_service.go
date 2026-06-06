@@ -2,10 +2,11 @@ package chat_ai
 
 import (
 	"context"
-	"github.com/bookshop/internal/transport/web/dto"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"github.com/bookshop/internal/transport/web/dto"
+	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) Ask(ctx context.Context, c *gin.Context) {

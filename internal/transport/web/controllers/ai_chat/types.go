@@ -15,11 +15,16 @@ type aiChatService interface {
 	DeleteMessages(ctx context.Context, firebaseId string, chatId uuid.UUID) error
 }
 
+type aiDialogService interface {
+	Ask(ctx context.Context, firebaseId string, chatId uuid.UUID, question string) (domain.AIAskResult, error)
+}
+
 type aiChatHandler struct {
 	acs aiChatService
+	ads aiDialogService
 	l   *slog.Logger
 }
 
-func New(acs aiChatService, l *slog.Logger) *aiChatHandler {
-	return &aiChatHandler{acs: acs, l: l}
+func New(acs aiChatService, ads aiDialogService, l *slog.Logger) *aiChatHandler {
+	return &aiChatHandler{acs: acs, ads: ads, l: l}
 }

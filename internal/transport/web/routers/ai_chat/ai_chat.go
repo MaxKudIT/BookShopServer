@@ -22,5 +22,8 @@ func (acr *aiChatRouter) AIChatRegRouters(ctx context.Context, gr *gin.RouterGro
 		aiChats.DELETE("/:chatId/messages", middleware.VerifyTokenMiddleware(), func(c *gin.Context) {
 			acr.ach.DeleteMessages(c.Request.Context(), c)
 		})
+		aiChats.POST("/:chatId/ask", middleware.VerifyTokenMiddleware(), func(c *gin.Context) {
+			acr.ach.Ask(c.Request.Context(), c)
+		})
 	}
 }

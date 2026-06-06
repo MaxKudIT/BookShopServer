@@ -2,6 +2,7 @@ package chat_ai
 
 import (
 	"context"
+
 	"github.com/bookshop/internal/transport/web/middleware"
 	"github.com/gin-gonic/gin"
 )

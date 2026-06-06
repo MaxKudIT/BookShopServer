@@ -16,6 +16,16 @@ type AIMessageDTO struct {
 	Content string `json:"content" binding:"required"`
 }
 
+type AIAskDTO struct {
+	Question string `json:"question" binding:"required"`
+}
+
+type AIAskResponseDTO struct {
+	UserMessageId      uuid.UUID `json:"userMessageId"`
+	AssistantMessageId uuid.UUID `json:"assistantMessageId"`
+	Answer             string    `json:"answer"`
+}
+
 func AIChatToDomain(id uuid.UUID, aiChatDTO AIChatDTO, createdAt time.Time) domain.AIChat {
 	return domain.AIChat{
 		Id:        id,

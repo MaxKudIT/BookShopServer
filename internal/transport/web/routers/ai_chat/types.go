@@ -11,6 +11,7 @@ type aiChatHandler interface {
 	CreateMessage(ctx context.Context, c *gin.Context)
 	Messages(ctx context.Context, c *gin.Context)
 	DeleteMessages(ctx context.Context, c *gin.Context)
+	Ask(ctx context.Context, c *gin.Context)
 }
 
 type aiChatRouter struct {

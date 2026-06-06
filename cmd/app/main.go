@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
-	"github.com/bookshop/internal/service/ollama"
-	"github.com/bookshop/internal/service/ollama/embedding"
-	llm2 "github.com/bookshop/internal/service/ollama/llm"
-	"github.com/bookshop/internal/storage/knowledge_base"
 	"log"
 	"log/slog"
 	"os"
 
+	"github.com/bookshop/internal/service/ollama"
+	"github.com/bookshop/internal/service/ollama/embedding"
+	llm2 "github.com/bookshop/internal/service/ollama/llm"
+	"github.com/bookshop/internal/storage/knowledge_base"
+
 	"github.com/bookshop/internal/logger"
 	acS "github.com/bookshop/internal/service/ai_chat"
+	adS "github.com/bookshop/internal/service/ai_dialog"
 	bookS "github.com/bookshop/internal/service/book"
 	brS "github.com/bookshop/internal/service/book_revs"
 	bvS "github.com/bookshop/internal/service/book_views"
@@ -36,7 +38,7 @@ import (
 	"github.com/bookshop/internal/storage/ai_chat"
 	"github.com/bookshop/internal/storage/book"
 	"github.com/bookshop/internal/storage/book_revs"
-	"github.com/bookshop/internal/storage/book_views"
+	bookviews "github.com/bookshop/internal/storage/book_views"
 	"github.com/bookshop/internal/storage/cart"
 	"github.com/bookshop/internal/storage/cart_items"
 	"github.com/bookshop/internal/storage/fav"
@@ -56,12 +58,12 @@ import (
 	user_subscriptions "github.com/bookshop/internal/storage/user_subscriptions"
 	"github.com/bookshop/internal/storage/users_books"
 	acH "github.com/bookshop/internal/transport/web/controllers/ai_chat"
+	aihandler "github.com/bookshop/internal/transport/web/controllers/ai_service"
 	bookH "github.com/bookshop/internal/transport/web/controllers/book"
 	brH "github.com/bookshop/internal/transport/web/controllers/book_revs"
 	bvH "github.com/bookshop/internal/transport/web/controllers/book_views"
 	cartH "github.com/bookshop/internal/transport/web/controllers/cart"
 	ciH "github.com/bookshop/internal/transport/web/controllers/cart_items"
-	aihandler "github.com/bookshop/internal/transport/web/controllers/chat_ai"
 	favH "github.com/bookshop/internal/transport/web/controllers/fav"
 	fiH "github.com/bookshop/internal/transport/web/controllers/fav_items"
 	oiH "github.com/bookshop/internal/transport/web/controllers/order_items"
@@ -78,12 +80,12 @@ import (
 	ubH "github.com/bookshop/internal/transport/web/controllers/users_books"
 	"github.com/bookshop/internal/transport/web/middleware"
 	acR "github.com/bookshop/internal/transport/web/routers/ai_chat"
+	airouter "github.com/bookshop/internal/transport/web/routers/ai_service"
 	bookR "github.com/bookshop/internal/transport/web/routers/book"
 	brR "github.com/bookshop/internal/transport/web/routers/book_revs"
 	bvR "github.com/bookshop/internal/transport/web/routers/book_views"
 	cartR "github.com/bookshop/internal/transport/web/routers/cart"
 	ciR "github.com/bookshop/internal/transport/web/routers/cart_items"
-	airouter "github.com/bookshop/internal/transport/web/routers/chat_ai"
 	favR "github.com/bookshop/internal/transport/web/routers/fav"
 	fiR "github.com/bookshop/internal/transport/web/routers/fav_items"
 	oiR "github.com/bookshop/internal/transport/web/routers/order_items"
@@ -282,8 +284,6 @@ func main() {
 
 	acst := ai_chat.New(db, lstor)
 	acserv := acS.New(acst, ust, lserv)
-	ach := acH.New(acserv, lhand)
-	acr := acR.New(ach)
 
 	ollamaURL := os.Getenv("OLLAMA_URL")
 	if ollamaURL == "" {
@@ -296,6 +296,10 @@ func main() {
 
 	aist := knowledge_base.New(db, lstor)
 	aiserv := aiservice.New(aist, embedder, llm, lserv)
+	adserv := adS.New(acserv, aiserv, lserv)
+
+	ach := acH.New(acserv, adserv, lhand)
+	acr := acR.New(ach)
 
 	aihand := aihandler.New(aiserv, lhand)
 	airout := airouter.New(aihand)

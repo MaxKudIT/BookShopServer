@@ -130,3 +130,42 @@ func (ach *aiChatHandler) DeleteMessages(ctx context.Context, c *gin.Context) {
 	ach.l.Info("Successfully deleted ai messages", "chatId", chatId)
 	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
+
+func (ach *aiChatHandler) Ask(ctx context.Context, c *gin.Context) {
+	ctxnew, cancel := context.WithTimeout(ctx, 90*time.Second)
+	defer cancel()
+
+	chatId, err := uuid.Parse(c.Param("chatId"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid UUID format"})
+		return
+	}
+
+	var askDTO dto.AIAskDTO
+	if err := c.ShouldBindJSON(&askDTO); err != nil {
+		ach.l.Error("Error asking ai: data not valid")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		ach.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	result, err := ach.ads.Ask(ctxnew, firebaseid.(string), chatId, askDTO.Question)
+	if err != nil {
+		ach.l.Error("Error asking ai dialog", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ach.l.Info("Successfully asked ai dialog", "chatId", chatId)
+	c.JSON(http.StatusOK, dto.AIAskResponseDTO{
+		UserMessageId:      result.UserMessageId,
+		AssistantMessageId: result.AssistantMessageId,
+		Answer:             result.Answer,
+	})
+}
