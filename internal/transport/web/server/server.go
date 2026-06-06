@@ -37,6 +37,7 @@ func (s *server) Create() *gin.Engine {
 		s.recr.RecommendationRegRouters(context.TODO(), maingr)
 		s.usr.UserSubscriptionsRegRouters(context.TODO(), maingr)
 		s.spr.SubscriptionPaymentsRegRouters(context.TODO(), maingr)
+		s.splr.SubscriptionPlansRegRouters(context.TODO(), maingr)
 		s.pbr.PhysicalBooksRegRouters(context.TODO(), maingr)
 		s.or.OrdersRegRouters(context.TODO(), maingr)
 		s.oir.OrderItemsRegRouters(context.TODO(), maingr)

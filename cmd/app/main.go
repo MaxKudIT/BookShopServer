@@ -31,6 +31,7 @@ import (
 	recS "github.com/bookshop/internal/service/recommendation"
 	statsS "github.com/bookshop/internal/service/stats"
 	spayS "github.com/bookshop/internal/service/subscription_payments"
+	splanS "github.com/bookshop/internal/service/subscription_plans"
 	userS "github.com/bookshop/internal/service/user"
 	usubS "github.com/bookshop/internal/service/user_subscriptions"
 	ubS "github.com/bookshop/internal/service/users_books"
@@ -54,6 +55,7 @@ import (
 	redisHistory "github.com/bookshop/internal/storage/redis/history"
 	"github.com/bookshop/internal/storage/stats"
 	subscription_payments "github.com/bookshop/internal/storage/subscription_payments"
+	subscription_plans "github.com/bookshop/internal/storage/subscription_plans"
 	"github.com/bookshop/internal/storage/user"
 	user_subscriptions "github.com/bookshop/internal/storage/user_subscriptions"
 	"github.com/bookshop/internal/storage/users_books"
@@ -75,6 +77,7 @@ import (
 	recH "github.com/bookshop/internal/transport/web/controllers/recommendation"
 	statsH "github.com/bookshop/internal/transport/web/controllers/stats"
 	spayH "github.com/bookshop/internal/transport/web/controllers/subscription_payments"
+	splanH "github.com/bookshop/internal/transport/web/controllers/subscription_plans"
 	userH "github.com/bookshop/internal/transport/web/controllers/user"
 	usubH "github.com/bookshop/internal/transport/web/controllers/user_subscriptions"
 	ubH "github.com/bookshop/internal/transport/web/controllers/users_books"
@@ -97,6 +100,7 @@ import (
 	recR "github.com/bookshop/internal/transport/web/routers/recommendation"
 	statsR "github.com/bookshop/internal/transport/web/routers/stats"
 	spayR "github.com/bookshop/internal/transport/web/routers/subscription_payments"
+	splanR "github.com/bookshop/internal/transport/web/routers/subscription_plans"
 	userR "github.com/bookshop/internal/transport/web/routers/user"
 	usubR "github.com/bookshop/internal/transport/web/routers/user_subscriptions"
 	ubR "github.com/bookshop/internal/transport/web/routers/users_books"
@@ -266,6 +270,13 @@ func main() {
 	spayh := spayH.New(spayserv, lhand)
 	spayr := spayR.New(spayh)
 
+	loggerSv.Info("Initializing subscription_plans components...")
+
+	splanst := subscription_plans.New(db, lstor)
+	splanserv := splanS.New(splanst, lserv)
+	splanh := splanH.New(splanserv, lhand)
+	splanr := splanR.New(splanh)
+
 	loggerSv.Info("Initializing orders components...")
 
 	ost := orders.New(db, lstor)
@@ -305,7 +316,7 @@ func main() {
 	airout := airouter.New(aihand)
 
 	loggerSv.Info("Creating server...")
-	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, pbr, or, oir, acr, airout)
+	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, splanr, pbr, or, oir, acr, airout)
 	router := server.Create()
 
 	loggerSv.Info("Server starting", "port", ":3000")
