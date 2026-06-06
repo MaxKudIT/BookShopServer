@@ -2,9 +2,10 @@ package book
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
-	"log/slog"
 )
 
 type userStorage interface {
@@ -14,6 +15,7 @@ type userStorage interface {
 type bookStorage interface {
 	AllBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
 	AllMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
+	AllNotMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
 	BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error)
 	IsMyBook(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (bool, error)
 }

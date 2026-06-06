@@ -3,10 +3,11 @@ package book
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func (bh *bookHandler) AllBooks(ctx context.Context, c *gin.Context) {
@@ -88,6 +89,30 @@ func (bh *bookHandler) AllMyBooks(ctx context.Context, c *gin.Context) {
 	//})
 
 	bh.l.Info("successfully got my books")
+	c.JSON(http.StatusOK, gin.H{"Books": books})
+}
+
+func (bh *bookHandler) AllNotMyBooks(ctx context.Context, c *gin.Context) {
+	connew, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		bh.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	fmt.Println("firebaseid:", firebaseid)
+
+	books, err := bh.bs.AllNotMyBooks(connew, firebaseid.(string))
+	if err != nil {
+		bh.l.Error("error while getting not my books", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()}) //500
+		return
+	}
+
+	bh.l.Info("successfully got not my books")
 	c.JSON(http.StatusOK, gin.H{"Books": books})
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
 )
@@ -34,6 +35,25 @@ func (b *bookService) AllMyBooks(ctx context.Context, firebaseId string) ([]doma
 	}
 
 	books, err := b.bs.AllMyBooks(ctx, userId)
+
+	if err != nil {
+		b.l.Error("book list failed", "err", err)
+		return nil, err
+	}
+
+	b.l.Info("book list success")
+	return books, nil
+}
+
+func (b *bookService) AllNotMyBooks(ctx context.Context, firebaseId string) ([]domain.BookPreview, error) {
+
+	userId, err := b.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		b.l.Error("user list failed", "err", err)
+		return nil, err
+	}
+
+	books, err := b.bs.AllNotMyBooks(ctx, userId)
 
 	if err != nil {
 		b.l.Error("book list failed", "err", err)

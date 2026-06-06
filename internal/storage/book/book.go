@@ -19,6 +19,7 @@ func (bs *bookStorage) AllBooks(ctx context.Context, userId uuid.UUID) ([]domain
   SELECT 
     b.id,
     b.title, 
+	b.author,
     b.genre, 
     b.price, 
     b.discount, 
@@ -52,7 +53,7 @@ LEFT JOIN users_books ub ON b.id = ub.book_id
 	for rows.Next() {
 		var currentObject domain.BookPreview
 		var isMine bool
-		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate, &isMine); err != nil {
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Author, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate, &isMine); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
@@ -71,6 +72,7 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
     SELECT 
         id, 
         title, 
+		author,
         genre, 
         price, 
         discount, 
@@ -98,7 +100,7 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 
 	for rows.Next() {
 		var currentObject domain.BookPreview
-		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate); err != nil {
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Author, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
@@ -106,6 +108,58 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 	}
 
 	bs.l.Info("Successfully getting my books", "userid", userId)
+
+	return myBooks, nil
+}
+
+func (bs *bookStorage) AllNotMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error) {
+
+	myBooks := make([]domain.BookPreview, 0)
+	const AllNotMyBooksQuery = `
+	SELECT 
+    	b.id, 
+    	b.title,
+    	b.author,
+    	b.genre, 
+    	b.price, 
+    	b.discount, 
+    	b.image_url,
+    	b.rate
+FROM books b
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM users_books ub
+    WHERE ub.book_id = b.id
+      AND ub.user_uid = $1
+);
+`
+	rows, err := bs.db.QueryContext(ctx, AllNotMyBooksQuery, userId)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			bs.l.Warn("Query cancelled", "error", err)
+			return nil, err
+		case errors.Is(err, context.DeadlineExceeded):
+			bs.l.Warn("Query timed out", "error", err)
+			return nil, err
+		default:
+			bs.l.Error("Query failed", "error", err)
+			return nil, err
+		}
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var currentObject domain.BookPreview
+		if err := rows.Scan(&currentObject.Id, &currentObject.Title, &currentObject.Author, &currentObject.Genre, &currentObject.Price, &currentObject.Discount, &currentObject.ImageUrl, &currentObject.Rate); err != nil {
+			bs.l.Error("Scan failed", "error", err)
+			return nil, err
+		}
+		myBooks = append(myBooks, currentObject)
+	}
+
+	bs.l.Info("Successfully getting not my books", "userid", userId)
 
 	return myBooks, nil
 }
