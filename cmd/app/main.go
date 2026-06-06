@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/bookshop/internal/logger"
+	acS "github.com/bookshop/internal/service/ai_chat"
 	bookS "github.com/bookshop/internal/service/book"
 	brS "github.com/bookshop/internal/service/book_revs"
 	bvS "github.com/bookshop/internal/service/book_views"
@@ -27,6 +28,7 @@ import (
 	usubS "github.com/bookshop/internal/service/user_subscriptions"
 	ubS "github.com/bookshop/internal/service/users_books"
 	"github.com/bookshop/internal/storage"
+	"github.com/bookshop/internal/storage/ai_chat"
 	"github.com/bookshop/internal/storage/book"
 	"github.com/bookshop/internal/storage/book_revs"
 	"github.com/bookshop/internal/storage/book_views"
@@ -48,6 +50,7 @@ import (
 	"github.com/bookshop/internal/storage/user"
 	user_subscriptions "github.com/bookshop/internal/storage/user_subscriptions"
 	"github.com/bookshop/internal/storage/users_books"
+	acH "github.com/bookshop/internal/transport/web/controllers/ai_chat"
 	bookH "github.com/bookshop/internal/transport/web/controllers/book"
 	brH "github.com/bookshop/internal/transport/web/controllers/book_revs"
 	bvH "github.com/bookshop/internal/transport/web/controllers/book_views"
@@ -68,6 +71,7 @@ import (
 	usubH "github.com/bookshop/internal/transport/web/controllers/user_subscriptions"
 	ubH "github.com/bookshop/internal/transport/web/controllers/users_books"
 	"github.com/bookshop/internal/transport/web/middleware"
+	acR "github.com/bookshop/internal/transport/web/routers/ai_chat"
 	bookR "github.com/bookshop/internal/transport/web/routers/book"
 	brR "github.com/bookshop/internal/transport/web/routers/book_revs"
 	bvR "github.com/bookshop/internal/transport/web/routers/book_views"
@@ -267,8 +271,15 @@ func main() {
 	oih := oiH.New(oiserv, lhand)
 	oir := oiR.New(oih)
 
+	loggerSv.Info("Initializing ai_chat components...")
+
+	acst := ai_chat.New(db, lstor)
+	acserv := acS.New(acst, ust, lserv)
+	ach := acH.New(acserv, lhand)
+	acr := acR.New(ach)
+
 	loggerSv.Info("Creating server...")
-	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, pbr, or, oir)
+	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, pbr, or, oir, acr)
 	router := server.Create()
 
 	loggerSv.Info("Server starting", "port", ":3000")

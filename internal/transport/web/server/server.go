@@ -40,6 +40,7 @@ func (s *server) Create() *gin.Engine {
 		s.pbr.PhysicalBooksRegRouters(context.TODO(), maingr)
 		s.or.OrdersRegRouters(context.TODO(), maingr)
 		s.oir.OrderItemsRegRouters(context.TODO(), maingr)
+		s.acr.AIChatRegRouters(context.TODO(), maingr)
 	}
 
 	return router
