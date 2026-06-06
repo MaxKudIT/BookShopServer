@@ -10,3 +10,12 @@ type PhysicalBook struct {
 	Format     string
 	StockCount int
 }
+
+type PhysicalBookStockInfo struct {
+	IsInStock     bool
+	BookId        uuid.UUID
+	Title         string
+	Author        string
+	Rate          float64
+	PhysicalBooks []PhysicalBook
+}

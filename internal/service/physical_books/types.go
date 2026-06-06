@@ -11,6 +11,7 @@ import (
 type physicalBooksStorage interface {
 	All(ctx context.Context) ([]domain.PhysicalBook, error)
 	ById(ctx context.Context, id uuid.UUID) (domain.PhysicalBook, error)
+	IsPhysicalBookInStock(ctx context.Context, bookId uuid.UUID) (domain.PhysicalBookStockInfo, error)
 }
 
 type physicalBooksService struct {

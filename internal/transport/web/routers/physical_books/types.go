@@ -9,6 +9,7 @@ import (
 type physicalBooksHandler interface {
 	All(ctx context.Context, c *gin.Context)
 	ById(ctx context.Context, c *gin.Context)
+	IsPhysicalBookInStock(ctx context.Context, c *gin.Context)
 }
 
 type physicalBooksRouter struct {

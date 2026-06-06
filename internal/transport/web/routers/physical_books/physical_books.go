@@ -11,6 +11,7 @@ func (pbr *physicalBooksRouter) PhysicalBooksRegRouters(ctx context.Context, gr 
 	physicalBooks := gr.Group("/physical-books")
 	{
 		physicalBooks.GET("", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pbr.pbh.All(c.Request.Context(), c) })
+		physicalBooks.GET("/book/:bookId/in-stock", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pbr.pbh.IsPhysicalBookInStock(c.Request.Context(), c) })
 		physicalBooks.GET("/:id", middleware.VerifyTokenMiddleware(), func(c *gin.Context) { pbr.pbh.ById(c.Request.Context(), c) })
 	}
 }

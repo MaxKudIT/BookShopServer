@@ -28,3 +28,14 @@ func (pbserv *physicalBooksService) ById(ctx context.Context, id uuid.UUID) (dom
 	pbserv.l.Info("Successfully got physical book", "id", id)
 	return physicalBook, nil
 }
+
+func (pbserv *physicalBooksService) IsPhysicalBookInStock(ctx context.Context, bookId uuid.UUID) (domain.PhysicalBookStockInfo, error) {
+	physicalBookStockInfo, err := pbserv.pbs.IsPhysicalBookInStock(ctx, bookId)
+	if err != nil {
+		pbserv.l.Error("Error getting physical book stock info", "error", err)
+		return domain.PhysicalBookStockInfo{}, err
+	}
+
+	pbserv.l.Info("Successfully got physical book stock info", "bookId", bookId)
+	return physicalBookStockInfo, nil
+}
