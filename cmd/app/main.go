@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/bookshop/internal/service/ollama"
+	"github.com/bookshop/internal/service/ollama/embedding"
+	llm2 "github.com/bookshop/internal/service/ollama/llm"
+	"github.com/bookshop/internal/storage/knowledge_base"
 	"log"
 	"log/slog"
 	"os"
@@ -15,6 +19,7 @@ import (
 	ciS "github.com/bookshop/internal/service/cart_items"
 	favS "github.com/bookshop/internal/service/fav"
 	fiS "github.com/bookshop/internal/service/fav_items"
+	aiservice "github.com/bookshop/internal/service/knowledge_base"
 	oiS "github.com/bookshop/internal/service/order_items"
 	orderS "github.com/bookshop/internal/service/orders"
 	pageS "github.com/bookshop/internal/service/page"
@@ -56,6 +61,7 @@ import (
 	bvH "github.com/bookshop/internal/transport/web/controllers/book_views"
 	cartH "github.com/bookshop/internal/transport/web/controllers/cart"
 	ciH "github.com/bookshop/internal/transport/web/controllers/cart_items"
+	aihandler "github.com/bookshop/internal/transport/web/controllers/chat_ai"
 	favH "github.com/bookshop/internal/transport/web/controllers/fav"
 	fiH "github.com/bookshop/internal/transport/web/controllers/fav_items"
 	oiH "github.com/bookshop/internal/transport/web/controllers/order_items"
@@ -77,6 +83,7 @@ import (
 	bvR "github.com/bookshop/internal/transport/web/routers/book_views"
 	cartR "github.com/bookshop/internal/transport/web/routers/cart"
 	ciR "github.com/bookshop/internal/transport/web/routers/cart_items"
+	airouter "github.com/bookshop/internal/transport/web/routers/chat_ai"
 	favR "github.com/bookshop/internal/transport/web/routers/fav"
 	fiR "github.com/bookshop/internal/transport/web/routers/fav_items"
 	oiR "github.com/bookshop/internal/transport/web/routers/order_items"
@@ -278,8 +285,23 @@ func main() {
 	ach := acH.New(acserv, lhand)
 	acr := acR.New(ach)
 
+	ollamaURL := os.Getenv("OLLAMA_URL")
+	if ollamaURL == "" {
+		ollamaURL = "http://localhost:11434"
+	}
+
+	ollamaClient := ollama.New(ollamaURL)
+	embedder := embedding.New(ollamaClient)
+	llm := llm2.New(ollamaClient)
+
+	aist := knowledge_base.New(db, lstor)
+	aiserv := aiservice.New(aist, embedder, llm, lserv)
+
+	aihand := aihandler.New(aiserv, lhand)
+	airout := airouter.New(aihand)
+
 	loggerSv.Info("Creating server...")
-	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, pbr, or, oir, acr)
+	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, pbr, or, oir, acr, airout)
 	router := server.Create()
 
 	loggerSv.Info("Server starting", "port", ":3000")

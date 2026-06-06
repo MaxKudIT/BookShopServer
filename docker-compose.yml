@@ -1,17 +1,99 @@
 version: '3.8'
+
+#services:
+#  postgres:
+#    image: bitnami/postgresql:latest
+#    container_name: bookshop-db-new
+#    environment:
+#      - POSTGRESQL_USERNAME=MaxKudIT
+#      - POSTGRESQL_PASSWORD=23145
+#      - POSTGRESQL_DATABASE=bookshopDB
+#      - POSTGRESQL_POSTGRES_PASSWORD=admin123
+#    ports:
+#      - "5436:5432"
+#    volumes:
+#      - /home/max/volumes/pg:/bitnami/postgresql
+#
+#  redis:
+#    image: redis:7-alpine
+#    container_name: bookshop-redis-new
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - /home/max/volumes/redis:/data
+#    command: ["redis-server", "--requirepass", "23135", "--appendonly", "yes"]
+#
+#
+#  ollama:
+#      image: ollama/ollama:latest
+#      container_name: bookshop-ollama
+#      ports:
+#        - "11434:11434"
+#      volumes:
+#        - /home/max/volumes/ollama:/root/.ollama
+#      dns:
+#        - 8.8.8.8
+#        - 1.1.1.1
+#volumes:
+#  ollama_data:
+#    postgres_pgvector:
+#      image: pgvector/pgvector:pg16
+#      container_name: bookshop-db-pgvector
+#      environment:
+#        POSTGRES_USER: MaxKudIT
+#        POSTGRES_PASSWORD: 23145
+#        POSTGRES_DB: bookshopDB
+#      ports:
+#        - "5437:5432"
+#      volumes:
+#        - pgvector_data:/var/lib/postgresql/data
+#
+#    volumes:
+#      pgvector_data:
+
+
 services:
-  postgres:
-    image: bitnami/postgresql:latest
-    container_name: bookshop-dbnew
-    environment:
-      - POSTGRESQL_USERNAME=MaxKudIT
-      - POSTGRESQL_PASSWORD=23145
-      - POSTGRESQL_DATABASE=bookshopDB
-      - POSTGRESQL_POSTGRES_PASSWORD=admin123
+  #  postgres:
+  #    image: bitnami/postgresql:latest
+  #    container_name: bookshop-db-new
+  #    environment:
+  #      - POSTGRESQL_USERNAME=MaxKudIT
+  #      - POSTGRESQL_PASSWORD=23145
+  #      - POSTGRESQL_DATABASE=bookshopDB
+  #      - POSTGRESQL_POSTGRES_PASSWORD=admin123
+  #    ports:
+  #      - "5436:5432"
+  #    volumes:
+  #      - /home/max/volumes/pg:/bitnami/postgresql
+
+  redis:
+    image: redis:7-alpine
+    container_name: bookshop-redis-new
     ports:
-      - "5436:5432"
+      - "6379:6379"
     volumes:
-      - C:\Users\maksk\Desktop\pg:/bitnami/postgresql
-volumes:
-  postgres_data:
-    driver: local
+      - /home/max/volumes/redis:/data
+    command: ["redis-server", "--requirepass", "23135", "--appendonly", "yes"]
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: bookshop-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - /home/max/volumes/ollama:/root/.ollama
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  postgres_pgvector:
+    image: pgvector/pgvector:0.8.2-pg18-trixie
+    container_name: bookshop-db-pgvector-new
+    environment:
+      POSTGRES_USER: MaxKudIT
+      POSTGRES_PASSWORD: 23145
+      POSTGRES_DB: bookshopDBVector
+    ports:
+      - "5437:5432"
+    volumes:
+      - /home/max/volumes/pgvector18:/var/lib/postgresql
