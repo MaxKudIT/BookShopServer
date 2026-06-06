@@ -26,6 +26,13 @@ type AIAskResponseDTO struct {
 	Answer             string    `json:"answer"`
 }
 
+type AIChatResponseDTO struct {
+	Id        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 func AIChatToDomain(id uuid.UUID, aiChatDTO AIChatDTO, createdAt time.Time) domain.AIChat {
 	return domain.AIChat{
 		Id:        id,
@@ -33,6 +40,15 @@ func AIChatToDomain(id uuid.UUID, aiChatDTO AIChatDTO, createdAt time.Time) doma
 		Title:     aiChatDTO.Title,
 		CreatedAt: createdAt,
 		UpdatedAt: createdAt,
+	}
+}
+
+func AIChatToResponseDTO(aiChat domain.AIChat) AIChatResponseDTO {
+	return AIChatResponseDTO{
+		Id:        aiChat.Id,
+		Title:     aiChat.Title,
+		CreatedAt: aiChat.CreatedAt,
+		UpdatedAt: aiChat.UpdatedAt,
 	}
 }
 

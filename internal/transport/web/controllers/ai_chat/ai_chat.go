@@ -2,6 +2,8 @@ package ai_chat
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
@@ -74,6 +76,34 @@ func (ach *aiChatHandler) CreateMessage(ctx context.Context, c *gin.Context) {
 
 	ach.l.Info("Successfully created ai message", "id", aiMessageId)
 	c.JSON(http.StatusCreated, gin.H{"id": aiMessageId})
+}
+
+func (ach *aiChatHandler) CurrentChat(ctx context.Context, c *gin.Context) {
+	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		ach.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	aiChat, err := ach.acs.CurrentChat(ctxnew, firebaseid.(string))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			ach.l.Error("Current ai chat not found", "error", err)
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "ai chat not found"})
+			return
+		}
+
+		ach.l.Error("Error getting current ai chat", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ach.l.Info("Successfully got current ai chat", "id", aiChat.Id)
+	c.JSON(http.StatusOK, dto.AIChatToResponseDTO(aiChat))
 }
 
 func (ach *aiChatHandler) Messages(ctx context.Context, c *gin.Context) {

@@ -13,6 +13,9 @@ func (acr *aiChatRouter) AIChatRegRouters(ctx context.Context, gr *gin.RouterGro
 		aiChats.POST("", middleware.VerifyTokenMiddleware(), func(c *gin.Context) {
 			acr.ach.CreateChat(c.Request.Context(), c)
 		})
+		aiChats.GET("/current", middleware.VerifyTokenMiddleware(), func(c *gin.Context) {
+			acr.ach.CurrentChat(c.Request.Context(), c)
+		})
 		aiChats.POST("/:chatId/messages", middleware.VerifyTokenMiddleware(), func(c *gin.Context) {
 			acr.ach.CreateMessage(c.Request.Context(), c)
 		})

@@ -11,6 +11,7 @@ import (
 type aiChatStorage interface {
 	SaveChat(ctx context.Context, aiChat domain.AIChat) error
 	SaveMessage(ctx context.Context, aiMessage domain.AIMessage) error
+	ChatByUserId(ctx context.Context, userId uuid.UUID) (domain.AIChat, error)
 	MessagesByChatId(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) ([]domain.AIMessage, error)
 	DeleteMessagesByChatId(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) error
 }

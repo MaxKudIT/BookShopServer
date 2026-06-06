@@ -2,6 +2,7 @@ package ai_chat
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/bookshop/internal/domain"
@@ -87,6 +88,42 @@ func (acs *aiChatStorage) SaveMessage(ctx context.Context, aiMessage domain.AIMe
 
 	acs.l.Info("Successfully saved ai message", "id", aiMessage.Id)
 	return nil
+}
+
+func (acs *aiChatStorage) ChatByUserId(ctx context.Context, userId uuid.UUID) (domain.AIChat, error) {
+	var aiChat domain.AIChat
+	const GetAIChatQuery = `
+		SELECT id, user_id, title, created_at, updated_at
+		FROM ai_chats
+		WHERE user_id = $1
+		LIMIT 1
+	`
+
+	if err := acs.db.QueryRowContext(ctx, GetAIChatQuery, userId).Scan(
+		&aiChat.Id,
+		&aiChat.UserId,
+		&aiChat.Title,
+		&aiChat.CreatedAt,
+		&aiChat.UpdatedAt,
+	); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			acs.l.Info("ai chat not found", "userId", userId)
+			return domain.AIChat{}, err
+		case errors.Is(err, context.Canceled):
+			acs.l.Warn("Query cancelled", "error", err)
+			return domain.AIChat{}, err
+		case errors.Is(err, context.DeadlineExceeded):
+			acs.l.Warn("Query timed out", "error", err)
+			return domain.AIChat{}, err
+		default:
+			acs.l.Error("Query failed", "error", err)
+			return domain.AIChat{}, err
+		}
+	}
+
+	acs.l.Info("Successfully got ai chat", "id", aiChat.Id)
+	return aiChat, nil
 }
 
 func (acs *aiChatStorage) MessagesByChatId(ctx context.Context, userId uuid.UUID, chatId uuid.UUID) ([]domain.AIMessage, error) {

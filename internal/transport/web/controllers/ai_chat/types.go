@@ -11,6 +11,7 @@ import (
 type aiChatService interface {
 	CreateChat(ctx context.Context, aiChat domain.AIChat, firebaseId string) (uuid.UUID, error)
 	CreateMessage(ctx context.Context, aiMessage domain.AIMessage, firebaseId string) (uuid.UUID, error)
+	CurrentChat(ctx context.Context, firebaseId string) (domain.AIChat, error)
 	Messages(ctx context.Context, firebaseId string, chatId uuid.UUID) ([]domain.AIMessage, error)
 	DeleteMessages(ctx context.Context, firebaseId string, chatId uuid.UUID) error
 }

@@ -58,6 +58,23 @@ func (acs *aiChatService) CreateMessage(ctx context.Context, aiMessage domain.AI
 	return aiMessage.Id, nil
 }
 
+func (acs *aiChatService) CurrentChat(ctx context.Context, firebaseId string) (domain.AIChat, error) {
+	userId, err := acs.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		acs.l.Error("Error getting userId by firebaseId", "error", err)
+		return domain.AIChat{}, err
+	}
+
+	aiChat, err := acs.acs.ChatByUserId(ctx, userId)
+	if err != nil {
+		acs.l.Error("Error getting current ai chat", "error", err)
+		return domain.AIChat{}, err
+	}
+
+	acs.l.Info("Successfully got current ai chat", "id", aiChat.Id)
+	return aiChat, nil
+}
+
 func (acs *aiChatService) Messages(ctx context.Context, firebaseId string, chatId uuid.UUID) ([]domain.AIMessage, error) {
 	userId, err := acs.us.UserByFirebaseId(ctx, firebaseId)
 	if err != nil {
