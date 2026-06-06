@@ -14,13 +14,15 @@ func (ss *statsStorage) StatsByUserId(ctx context.Context, userId uuid.UUID) (do
 		SELECT
 			COALESCE((SELECT SUM(minutes) FROM reading_sessions WHERE user_id = $1), 0),
 			COALESCE((SELECT COUNT(*) FROM users_books WHERE user_uid = $1 AND status = 'finished'), 0),
-			COALESCE((SELECT AVG(rating) FROM book_revs WHERE user_id = $1), 0)
+			COALESCE((SELECT AVG(rating) FROM book_revs WHERE user_id = $1), 0),
+			COALESCE((SELECT COUNT(DISTINCT book_id) FROM users_books WHERE user_uid = $1), 0)
 	`
 
 	if err := ss.db.QueryRowContext(ctx, GetStatsQuery, userId).Scan(
 		&userStats.TotalMinutes,
 		&userStats.ReadBooks,
 		&userStats.AverageRating,
+		&userStats.PurchasedBooks,
 	); err != nil {
 		switch {
 		case errors.Is(err, context.Canceled):
