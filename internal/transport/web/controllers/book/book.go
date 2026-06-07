@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/bookshop/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -116,6 +118,74 @@ func (bh *bookHandler) AllNotMyBooks(ctx context.Context, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Books": books})
 }
 
+func (bh *bookHandler) Search(ctx context.Context, c *gin.Context) {
+	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		bh.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	minPrice, err := optionalFloatQuery(c, "minPrice")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	maxPrice, err := optionalFloatQuery(c, "maxPrice")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	minRate, err := optionalFloatQuery(c, "minRate")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	limit, err := optionalIntQuery(c, "limit")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	offset, err := optionalIntQuery(c, "offset")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	query := c.Query("q")
+	if query == "" {
+		query = c.Query("query")
+	}
+
+	filter := domain.BookSearchFilter{
+		Query:    query,
+		Genre:    c.Query("genre"),
+		MinPrice: minPrice,
+		MaxPrice: maxPrice,
+		MinRate:  minRate,
+		Sort:     c.Query("sort"),
+		Limit:    limit,
+		Offset:   offset,
+	}
+
+	books, err := bh.bs.Search(ctxnew, firebaseid.(string), filter)
+	if err != nil {
+		bh.l.Error("error while searching books", "error", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	bh.l.Info("successfully searched books")
+	c.JSON(http.StatusOK, gin.H{"Books": books})
+}
+
 func (bh *bookHandler) BookById(ctx context.Context, c *gin.Context) {
 	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
@@ -176,4 +246,32 @@ func (bh *bookHandler) IsMyBook(ctx context.Context, c *gin.Context) {
 	}
 	bh.l.Info("Successfully got result", "IsMyBook", IsMyBook)
 	c.JSON(http.StatusOK, gin.H{"IsMy": IsMyBook})
+}
+
+func optionalFloatQuery(c *gin.Context, key string) (*float64, error) {
+	raw := c.Query(key)
+	if raw == "" {
+		return nil, nil
+	}
+
+	value, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%s must be a number", key)
+	}
+
+	return &value, nil
+}
+
+func optionalIntQuery(c *gin.Context, key string) (int, error) {
+	raw := c.Query(key)
+	if raw == "" {
+		return 0, nil
+	}
+
+	value, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be an integer", key)
+	}
+
+	return value, nil
 }

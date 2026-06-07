@@ -10,6 +10,7 @@ type bookHandler interface {
 	AllBooks(ctx context.Context, c *gin.Context)
 	AllMyBooks(ctx context.Context, c *gin.Context)
 	AllNotMyBooks(ctx context.Context, c *gin.Context)
+	Search(ctx context.Context, c *gin.Context)
 	BookById(ctx context.Context, c *gin.Context)
 	IsMyBook(ctx context.Context, c *gin.Context)
 }

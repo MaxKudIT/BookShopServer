@@ -44,3 +44,14 @@ type BookPreview struct {
 	ImageUrl string
 	Rate     float64
 }
+
+type BookSearchFilter struct {
+	Query    string
+	Genre    string
+	MinPrice *float64
+	MaxPrice *float64
+	MinRate  *float64
+	Sort     string
+	Limit    int
+	Offset   int
+}

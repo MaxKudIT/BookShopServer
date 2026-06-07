@@ -16,6 +16,7 @@ type bookStorage interface {
 	AllBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
 	AllMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
 	AllNotMyBooks(ctx context.Context, userId uuid.UUID) ([]domain.BookPreview, error)
+	Search(ctx context.Context, userId uuid.UUID, filter domain.BookSearchFilter) ([]domain.BookPreview, error)
 	BookById(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (domain.Book, error)
 	IsMyBook(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (bool, error)
 }

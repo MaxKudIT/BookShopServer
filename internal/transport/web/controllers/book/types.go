@@ -12,6 +12,7 @@ type bookService interface {
 	AllBooks(ctx context.Context, firebaseId string) ([]domain.BookPreview, error)
 	AllMyBooks(ctx context.Context, firebaseId string) ([]domain.BookPreview, error)
 	AllNotMyBooks(ctx context.Context, firebaseId string) ([]domain.BookPreview, error)
+	Search(ctx context.Context, firebaseId string, filter domain.BookSearchFilter) ([]domain.BookPreview, error)
 	BookById(ctx context.Context, firebaseId string, bookId uuid.UUID) (domain.Book, error)
 	IsMyBook(ctx context.Context, firebaseId string, bookId uuid.UUID) (bool, error)
 }

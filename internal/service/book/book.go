@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
@@ -61,6 +62,37 @@ func (b *bookService) AllNotMyBooks(ctx context.Context, firebaseId string) ([]d
 	}
 
 	b.l.Info("book list success")
+	return books, nil
+}
+
+func (b *bookService) Search(ctx context.Context, firebaseId string, filter domain.BookSearchFilter) ([]domain.BookPreview, error) {
+	userId, err := b.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		b.l.Error("user list failed", "err", err)
+		return nil, err
+	}
+
+	filter.Query = strings.TrimSpace(filter.Query)
+	filter.Genre = strings.TrimSpace(filter.Genre)
+	filter.Sort = strings.ToLower(strings.TrimSpace(filter.Sort))
+
+	if filter.Limit <= 0 {
+		filter.Limit = 20
+	}
+	if filter.Limit > 50 {
+		filter.Limit = 50
+	}
+	if filter.Offset < 0 {
+		filter.Offset = 0
+	}
+
+	books, err := b.bs.Search(ctx, userId, filter)
+	if err != nil {
+		b.l.Error("book search failed", "err", err)
+		return nil, err
+	}
+
+	b.l.Info("book search success")
 	return books, nil
 }
 
