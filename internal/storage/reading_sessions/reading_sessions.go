@@ -3,6 +3,7 @@ package reading_sessions
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
@@ -88,6 +89,43 @@ func (rss *readingSessionsStorage) AllByUserId(ctx context.Context, userId uuid.
 
 	rss.l.Info("Successfully got reading sessions", "userId", userId)
 	return readingSessions, nil
+}
+
+func (rss *readingSessionsStorage) Close(ctx context.Context, userId uuid.UUID, sessionId uuid.UUID, endedAt time.Time) (domain.ReadingSession, error) {
+	var readingSession domain.ReadingSession
+	const CloseReadingSessionQuery = `
+		UPDATE reading_sessions
+		SET ended_at = $3,
+			minutes = GREATEST(0, FLOOR(EXTRACT(EPOCH FROM ($3 - started_at)) / 60)::int)
+		WHERE id = $1
+			AND user_id = $2
+			AND ended_at IS NULL
+		RETURNING id, user_id, book_id, started_at, ended_at, minutes
+	`
+
+	if err := rss.db.QueryRowContext(ctx, CloseReadingSessionQuery, sessionId, userId, endedAt).Scan(
+		&readingSession.Id,
+		&readingSession.UserId,
+		&readingSession.BookId,
+		&readingSession.StartedAt,
+		&readingSession.EndedAt,
+		&readingSession.Minutes,
+	); err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			rss.l.Warn("Query cancelled", "error", err)
+			return domain.ReadingSession{}, err
+		case errors.Is(err, context.DeadlineExceeded):
+			rss.l.Warn("Query timed out", "error", err)
+			return domain.ReadingSession{}, err
+		default:
+			rss.l.Error("Query failed", "error", err)
+			return domain.ReadingSession{}, err
+		}
+	}
+
+	rss.l.Info("Successfully closed reading session", "id", sessionId)
+	return readingSession, nil
 }
 
 func (rss *readingSessionsStorage) LastReadingBookRecords(ctx context.Context, userId uuid.UUID, limit int) ([]domain.LastReadingBook, error) {

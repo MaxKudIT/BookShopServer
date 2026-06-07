@@ -10,6 +10,7 @@ import (
 
 type readingSessionsService interface {
 	Create(ctx context.Context, readingSession domain.ReadingSession, firebaseId string) (uuid.UUID, error)
+	Close(ctx context.Context, firebaseId string, sessionId uuid.UUID) (domain.ReadingSession, error)
 	All(ctx context.Context, firebaseId string) ([]domain.ReadingSession, error)
 	LastReadingBooks(ctx context.Context, firebaseId string, limit int) ([]domain.ReadingBookPreview, error)
 }

@@ -3,6 +3,7 @@ package reading_sessions
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
@@ -10,6 +11,7 @@ import (
 
 type readingSessionsStorage interface {
 	Save(ctx context.Context, readingSession domain.ReadingSession) error
+	Close(ctx context.Context, userId uuid.UUID, sessionId uuid.UUID, endedAt time.Time) (domain.ReadingSession, error)
 	AllByUserId(ctx context.Context, userId uuid.UUID) ([]domain.ReadingSession, error)
 	LastReadingBookRecords(ctx context.Context, userId uuid.UUID, limit int) ([]domain.LastReadingBook, error)
 }

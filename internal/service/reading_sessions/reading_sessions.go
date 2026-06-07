@@ -2,6 +2,7 @@ package reading_sessions
 
 import (
 	"context"
+	"time"
 
 	"github.com/bookshop/internal/domain"
 	"github.com/google/uuid"
@@ -37,6 +38,23 @@ func (rsserv *readingSessionsService) All(ctx context.Context, firebaseId string
 	}
 	rsserv.l.Info("Successfully got reading sessions", "userId", userId)
 	return readingSessions, nil
+}
+
+func (rsserv *readingSessionsService) Close(ctx context.Context, firebaseId string, sessionId uuid.UUID) (domain.ReadingSession, error) {
+	userId, err := rsserv.us.UserByFirebaseId(ctx, firebaseId)
+	if err != nil {
+		rsserv.l.Error("Error getting userId by firebaseId", "error", err)
+		return domain.ReadingSession{}, err
+	}
+
+	readingSession, err := rsserv.rss.Close(ctx, userId, sessionId, time.Now())
+	if err != nil {
+		rsserv.l.Error("Error closing reading session", "error", err)
+		return domain.ReadingSession{}, err
+	}
+
+	rsserv.l.Info("Successfully closed reading session", "sessionId", sessionId)
+	return readingSession, nil
 }
 
 func (rsserv *readingSessionsService) LastReadingBooks(ctx context.Context, firebaseId string, limit int) ([]domain.ReadingBookPreview, error) {

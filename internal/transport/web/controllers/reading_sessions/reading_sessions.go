@@ -63,6 +63,35 @@ func (rsh *readingSessionsHandler) All(ctx context.Context, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"readingSessions": readingSessions})
 }
 
+func (rsh *readingSessionsHandler) Close(ctx context.Context, c *gin.Context) {
+	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	parsingSessionId, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		rsh.l.Error("Error parsing reading session id", "error", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	firebaseid, exists := c.Get("firebase_id")
+	if !exists {
+		rsh.l.Error("firebaseid not found in context")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	readingSession, err := rsh.rsserv.Close(ctxnew, firebaseid.(string), parsingSessionId)
+	if err != nil {
+		rsh.l.Error("Error closing reading session", "error", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rsh.l.Info("Successfully closed reading session", "id", parsingSessionId)
+	c.JSON(http.StatusOK, gin.H{"readingSession": readingSession})
+}
+
 func (rsh *readingSessionsHandler) LastReadingBooks(ctx context.Context, c *gin.Context) {
 	ctxnew, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
