@@ -13,7 +13,7 @@ func (ss *statsStorage) StatsByUserId(ctx context.Context, userId uuid.UUID) (do
 	const GetStatsQuery = `
 		SELECT
 			COALESCE((SELECT SUM(minutes) FROM reading_sessions WHERE user_id = $1), 0),
-			COALESCE((SELECT COUNT(*) FROM users_books WHERE user_uid = $1 AND status = 'finished'), 0),
+			COALESCE((SELECT COUNT(*) FROM user_reading_progress WHERE user_id = $1 AND status = 'finished'), 0),
 			COALESCE((SELECT AVG(rating) FROM book_revs WHERE user_id = $1), 0),
 			COALESCE((SELECT COUNT(DISTINCT book_id) FROM users_books WHERE user_uid = $1), 0)
 	`

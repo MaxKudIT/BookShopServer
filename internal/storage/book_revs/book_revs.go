@@ -9,6 +9,46 @@ import (
 )
 
 func (brs *bookRevsStorage) Save(ctx context.Context, bookReview domain.BookReview) error {
+	const UpdateBookReviewQuery = `
+		UPDATE book_revs
+		SET rating = $3,
+			created_at = $4
+		WHERE user_id = $1
+			AND book_id = $2
+	`
+
+	result, err := brs.db.ExecContext(
+		ctx,
+		UpdateBookReviewQuery,
+		bookReview.UserId,
+		bookReview.BookId,
+		bookReview.Rating,
+		bookReview.CreatedAt,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, context.Canceled):
+			brs.l.Warn("Query cancelled", "error", err)
+			return err
+		case errors.Is(err, context.DeadlineExceeded):
+			brs.l.Warn("Query timed out", "error", err)
+			return err
+		default:
+			brs.l.Error("Query failed", "error", err)
+			return err
+		}
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		brs.l.Error("Rows affected failed", "error", err)
+		return err
+	}
+	if rowsAffected > 0 {
+		brs.l.Info("Successfully updated book review", "bookId", bookReview.BookId)
+		return nil
+	}
+
 	const CreateBookReviewQuery = `
 		INSERT INTO book_revs (id, user_id, book_id, rating, created_at)
 		VALUES ($1, $2, $3, $4, $5)

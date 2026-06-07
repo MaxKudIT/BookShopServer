@@ -22,6 +22,7 @@ type historyStorage interface {
 }
 
 type readingStorage interface {
+	CanRead(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (bool, error)
 	Start(ctx context.Context, userId uuid.UUID, bookId uuid.UUID, sessionId uuid.UUID, startedAt time.Time) (domain.ReadingState, error)
 	UpdateProgress(ctx context.Context, userId uuid.UUID, bookId uuid.UUID, currentPage int, progressPercent int, status domain.Status) (domain.ReadingState, error)
 	ActiveSessionBookId(ctx context.Context, userId uuid.UUID, sessionId uuid.UUID) (uuid.UUID, error)

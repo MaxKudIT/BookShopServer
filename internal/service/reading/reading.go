@@ -16,6 +16,16 @@ func (rserv *readingService) Start(ctx context.Context, firebaseId string, bookI
 		return domain.ReadingState{}, err
 	}
 
+	canRead, err := rserv.rs.CanRead(ctx, userId, bookId)
+	if err != nil {
+		rserv.l.Error("Error checking reading access", "error", err)
+		return domain.ReadingState{}, err
+	}
+	if !canRead {
+		rserv.l.Warn("Reading access denied", "userId", userId, "bookId", bookId)
+		return domain.ReadingState{}, errors.New("book is not available for reading")
+	}
+
 	readingState, err := rserv.rs.Start(ctx, userId, bookId, uuid.New(), time.Now())
 	if err != nil {
 		rserv.l.Error("Error starting reading", "error", err)
@@ -37,6 +47,16 @@ func (rserv *readingService) UpdateProgress(ctx context.Context, firebaseId stri
 	if err != nil {
 		rserv.l.Error("Error getting userId by firebaseId", "error", err)
 		return domain.ReadingState{}, err
+	}
+
+	canRead, err := rserv.rs.CanRead(ctx, userId, bookId)
+	if err != nil {
+		rserv.l.Error("Error checking reading access", "error", err)
+		return domain.ReadingState{}, err
+	}
+	if !canRead {
+		rserv.l.Warn("Reading access denied", "userId", userId, "bookId", bookId)
+		return domain.ReadingState{}, errors.New("book is not available for reading")
 	}
 
 	pagesCount, err := rserv.bs.PagesCountById(ctx, bookId)

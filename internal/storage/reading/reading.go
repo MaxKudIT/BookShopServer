@@ -19,18 +19,24 @@ func (rs *readingStorage) Start(ctx context.Context, userId uuid.UUID, bookId uu
 	defer tx.Rollback()
 
 	readingState := domain.ReadingState{BookId: bookId}
-	const UpdateUserBookQuery = `
-		UPDATE users_books
-		SET status = CASE WHEN status = $3 THEN status ELSE $4 END
-		WHERE user_uid = $1 AND book_id = $2
-		RETURNING COALESCE(current_page, 0), COALESCE(progress_percent, 0), status
+	const UpsertReadingProgressQuery = `
+		INSERT INTO user_reading_progress (user_id, book_id, status, current_page, progress_percent, updated_at)
+		VALUES ($1, $2, $3, 1, 0, NOW())
+		ON CONFLICT (user_id, book_id)
+		DO UPDATE SET
+			status = CASE
+				WHEN user_reading_progress.status = $4 THEN user_reading_progress.status
+				ELSE $3
+			END,
+			updated_at = NOW()
+		RETURNING current_page, progress_percent, status
 	`
-	if err := tx.QueryRowContext(ctx, UpdateUserBookQuery, userId, bookId, domain.Finished, domain.Reading).Scan(
+	if err := tx.QueryRowContext(ctx, UpsertReadingProgressQuery, userId, bookId, domain.Reading, domain.Finished).Scan(
 		&readingState.CurrentPage,
 		&readingState.ProgressPercent,
 		&readingState.Status,
 	); err != nil {
-		rs.l.Error("Error updating user book status", "error", err)
+		rs.l.Error("Error upserting reading progress", "error", err)
 		return domain.ReadingState{}, err
 	}
 
@@ -68,15 +74,18 @@ func (rs *readingStorage) Start(ctx context.Context, userId uuid.UUID, bookId uu
 
 func (rs *readingStorage) UpdateProgress(ctx context.Context, userId uuid.UUID, bookId uuid.UUID, currentPage int, progressPercent int, status domain.Status) (domain.ReadingState, error) {
 	readingState := domain.ReadingState{BookId: bookId}
-	const UpdateProgressQuery = `
-		UPDATE users_books
-		SET current_page = $3,
-			progress_percent = $4,
-			status = $5
-		WHERE user_uid = $1 AND book_id = $2
+	const UpsertProgressQuery = `
+		INSERT INTO user_reading_progress (user_id, book_id, status, current_page, progress_percent, updated_at)
+		VALUES ($1, $2, $5, $3, $4, NOW())
+		ON CONFLICT (user_id, book_id)
+		DO UPDATE SET
+			current_page = EXCLUDED.current_page,
+			progress_percent = EXCLUDED.progress_percent,
+			status = EXCLUDED.status,
+			updated_at = NOW()
 		RETURNING current_page, progress_percent, status
 	`
-	if err := rs.db.QueryRowContext(ctx, UpdateProgressQuery, userId, bookId, currentPage, progressPercent, status).Scan(
+	if err := rs.db.QueryRowContext(ctx, UpsertProgressQuery, userId, bookId, currentPage, progressPercent, status).Scan(
 		&readingState.CurrentPage,
 		&readingState.ProgressPercent,
 		&readingState.Status,
@@ -86,6 +95,31 @@ func (rs *readingStorage) UpdateProgress(ctx context.Context, userId uuid.UUID, 
 	}
 	rs.l.Info("Successfully updated reading progress", "bookId", bookId)
 	return readingState, nil
+}
+
+func (rs *readingStorage) CanRead(ctx context.Context, userId uuid.UUID, bookId uuid.UUID) (bool, error) {
+	var canRead bool
+	const CanReadQuery = `
+		SELECT
+			EXISTS (
+				SELECT 1
+				FROM users_books
+				WHERE user_uid = $1 AND book_id = $2
+			)
+			OR EXISTS (
+				SELECT 1
+				FROM user_subscriptions
+				WHERE user_id = $1
+					AND status = 'active'
+					AND expires_at > NOW()
+			)
+	`
+	if err := rs.db.QueryRowContext(ctx, CanReadQuery, userId, bookId).Scan(&canRead); err != nil {
+		rs.l.Error("Error checking reading access", "error", err)
+		return false, err
+	}
+	rs.l.Info("Successfully checked reading access", "bookId", bookId, "canRead", canRead)
+	return canRead, nil
 }
 
 func (rs *readingStorage) ActiveSessionBookId(ctx context.Context, userId uuid.UUID, sessionId uuid.UUID) (uuid.UUID, error) {
@@ -124,20 +158,23 @@ func (rs *readingStorage) Finish(ctx context.Context, userId uuid.UUID, sessionI
 		return domain.ReadingState{}, err
 	}
 
-	const UpdateUserBookQuery = `
-		UPDATE users_books
-		SET current_page = $3,
-			progress_percent = $4,
-			status = $5
-		WHERE user_uid = $1 AND book_id = $2
+	const UpsertReadingProgressQuery = `
+		INSERT INTO user_reading_progress (user_id, book_id, status, current_page, progress_percent, updated_at)
+		VALUES ($1, $2, $5, $3, $4, NOW())
+		ON CONFLICT (user_id, book_id)
+		DO UPDATE SET
+			current_page = EXCLUDED.current_page,
+			progress_percent = EXCLUDED.progress_percent,
+			status = EXCLUDED.status,
+			updated_at = NOW()
 		RETURNING current_page, progress_percent, status
 	`
-	if err := tx.QueryRowContext(ctx, UpdateUserBookQuery, userId, readingState.BookId, currentPage, progressPercent, status).Scan(
+	if err := tx.QueryRowContext(ctx, UpsertReadingProgressQuery, userId, readingState.BookId, currentPage, progressPercent, status).Scan(
 		&readingState.CurrentPage,
 		&readingState.ProgressPercent,
 		&readingState.Status,
 	); err != nil {
-		rs.l.Error("Error updating user book after session finish", "error", err)
+		rs.l.Error("Error upserting reading progress after session finish", "error", err)
 		return domain.ReadingState{}, err
 	}
 
