@@ -11,7 +11,7 @@ import (
 
 func (uss *userSubscriptionsStorage) Save(ctx context.Context, userSubscription domain.UserSubscription) error {
 	const CreateUserSubscriptionQuery = `
-		INSERT INTO user_subscriptions (id, user_id, plan_id, status, started_at, expires_at)
+		INSERT INTO user_subscriptions (id, user_id, plan_id, status, started_at, expired_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`
 
@@ -45,7 +45,7 @@ func (uss *userSubscriptionsStorage) Save(ctx context.Context, userSubscription 
 func (uss *userSubscriptionsStorage) AllByUserId(ctx context.Context, userId uuid.UUID) ([]domain.UserSubscription, error) {
 	userSubscriptions := make([]domain.UserSubscription, 0)
 	const AllUserSubscriptionsQuery = `
-		SELECT id, user_id, plan_id, status, started_at, expires_at
+		SELECT id, user_id, plan_id, status, started_at, expired_at
 		FROM user_subscriptions
 		WHERE user_id = $1
 		ORDER BY started_at DESC
@@ -95,12 +95,12 @@ func (uss *userSubscriptionsStorage) AllByUserId(ctx context.Context, userId uui
 func (uss *userSubscriptionsStorage) ActiveByUserId(ctx context.Context, userId uuid.UUID) (domain.UserSubscription, bool, error) {
 	var userSubscription domain.UserSubscription
 	const ActiveUserSubscriptionQuery = `
-		SELECT id, user_id, plan_id, status, started_at, expires_at
+		SELECT id, user_id, plan_id, status, started_at, expired_at
 		FROM user_subscriptions
 		WHERE user_id = $1
 			AND status = 'active'
-			AND expires_at > NOW()
-		ORDER BY expires_at DESC
+			AND expired_at > NOW()
+		ORDER BY expired_at DESC
 		LIMIT 1
 	`
 

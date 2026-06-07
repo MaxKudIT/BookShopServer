@@ -10,7 +10,7 @@ import (
 
 func (brs *bookRevsStorage) Save(ctx context.Context, bookReview domain.BookReview) error {
 	const UpdateBookReviewQuery = `
-		UPDATE book_revs
+		UPDATE book_reviews
 		SET rating = $3,
 			created_at = $4
 		WHERE user_id = $1
@@ -83,7 +83,7 @@ func (brs *bookRevsStorage) AllByUserId(ctx context.Context, userId uuid.UUID) (
 	bookReviews := make([]domain.BookReview, 0)
 	const AllBookReviewsQuery = `
 		SELECT id, user_id, book_id, rating, created_at
-		FROM book_revs
+		FROM book_reviews
 		WHERE user_id = $1
 		ORDER BY created_at DESC
 	`
