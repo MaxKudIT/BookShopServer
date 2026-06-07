@@ -99,13 +99,7 @@ func (rserv *readingService) Finish(ctx context.Context, firebaseId string, sess
 		return domain.ReadingState{}, err
 	}
 
-	currentPage, progressPercent, status, err := calculateProgress(currentPage, pagesCount)
-	if err != nil {
-		rserv.l.Error("Error calculating progress", "error", err)
-		return domain.ReadingState{}, err
-	}
-
-	readingState, err := rserv.rs.Finish(ctx, userId, sessionId, currentPage, progressPercent, status, time.Now())
+	readingState, err := rserv.rs.Finish(ctx, userId, sessionId, pagesCount, 100, domain.Finished, time.Now())
 	if err != nil {
 		rserv.l.Error("Error finishing reading", "error", err)
 		return domain.ReadingState{}, err
