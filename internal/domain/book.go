@@ -43,6 +43,7 @@ type BookPreview struct {
 	Discount int
 	ImageUrl string
 	Rate     float64
+	IsMine   bool
 }
 
 type BookSearchFilter struct {

@@ -58,6 +58,7 @@ LEFT JOIN users_books ub ON b.id = ub.book_id
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
+		currentObject.IsMine = isMine
 		books = append(books, currentObject)
 	}
 	fmt.Println(len(books))
@@ -105,6 +106,7 @@ func (bs *bookStorage) AllMyBooks(ctx context.Context, userId uuid.UUID) ([]doma
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
+		currentObject.IsMine = true
 		myBooks = append(myBooks, currentObject)
 	}
 
@@ -157,6 +159,7 @@ WHERE NOT EXISTS (
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
+		currentObject.IsMine = false
 		myBooks = append(myBooks, currentObject)
 	}
 
@@ -266,6 +269,7 @@ func (bs *bookStorage) Search(ctx context.Context, userId uuid.UUID, filter doma
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
 		}
+		currentObject.IsMine = isMine
 		books = append(books, currentObject)
 	}
 
