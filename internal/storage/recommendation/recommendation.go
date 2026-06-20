@@ -19,18 +19,45 @@ func (rs *recommendationStorage) HomeRecommendation(ctx context.Context, userId 
 			FROM users_books
 			WHERE user_uid = $1
 		),
+		fav_books AS (
+			SELECT fi.book_id
+			FROM fav_items fi
+			INNER JOIN favs f ON f.id = fi.fav_id
+			WHERE f.user_id = $1
+		),
+		cart_books AS (
+			SELECT pb.book_id
+			FROM cart_items ci
+			INNER JOIN physical_books pb ON pb.id = ci.physical_book_id
+			INNER JOIN carts c ON c.id = ci.cart_id
+			WHERE c.user_id = $1
+		),
+		seed_books AS (
+			SELECT book_id, 3 AS weight
+			FROM owned
+
+			UNION ALL
+
+			SELECT book_id, 2 AS weight
+			FROM fav_books
+
+			UNION ALL
+
+			SELECT book_id, 2 AS weight
+			FROM cart_books
+		),
 		seed AS (
-			SELECT b.genre, b.author
+			SELECT b.genre, b.author, sb.weight
 			FROM books b
-			INNER JOIN owned o ON o.book_id = b.id
+			INNER JOIN seed_books sb ON sb.book_id = b.id
 		),
 		genre_counts AS (
-			SELECT genre, COUNT(*) AS cnt
+			SELECT genre, SUM(weight) AS cnt
 			FROM seed
 			GROUP BY genre
 		),
 		author_counts AS (
-			SELECT author, COUNT(*) AS cnt
+			SELECT author, SUM(weight) AS cnt
 			FROM seed
 			GROUP BY author
 		)
@@ -50,6 +77,16 @@ func (rs *recommendationStorage) HomeRecommendation(ctx context.Context, userId 
 			SELECT 1
 			FROM owned o
 			WHERE o.book_id = b.id
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM fav_books fb
+			WHERE fb.book_id = b.id
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM cart_books cb
+			WHERE cb.book_id = b.id
 		)
 		ORDER BY
 			CASE WHEN gc.cnt IS NOT NULL OR ac.cnt IS NOT NULL THEN 1 ELSE 0 END DESC,
