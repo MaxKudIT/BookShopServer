@@ -2,8 +2,6 @@ package reading
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/bookshop/internal/domain"
@@ -40,29 +38,34 @@ func (rs *readingStorage) Start(ctx context.Context, userId uuid.UUID, bookId uu
 		return domain.ReadingState{}, err
 	}
 
-	const GetActiveSessionQuery = `
-		SELECT id
-		FROM reading_sessions
-		WHERE user_id = $1 AND book_id = $2 AND ended_at IS NULL
-		ORDER BY started_at DESC
-		LIMIT 1
+	const CloseStaleReadingSessionsQuery = `
+		UPDATE reading_sessions
+		SET ended_at = $3,
+			minutes = GREATEST(
+				0,
+				LEAST(
+					FLOOR(EXTRACT(EPOCH FROM ($3 - started_at)) / 60)::int,
+					180
+				)
+			)
+		WHERE user_id = $1
+			AND book_id = $2
+			AND ended_at IS NULL
 	`
-	if err := tx.QueryRowContext(ctx, GetActiveSessionQuery, userId, bookId).Scan(&readingState.SessionId); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			rs.l.Error("Error getting active reading session", "error", err)
-			return domain.ReadingState{}, err
-		}
-
-		const CreateReadingSessionQuery = `
-			INSERT INTO reading_sessions (id, user_id, book_id, started_at, ended_at, minutes)
-			VALUES ($1, $2, $3, $4, NULL, 0)
-		`
-		if _, err := tx.ExecContext(ctx, CreateReadingSessionQuery, sessionId, userId, bookId, startedAt); err != nil {
-			rs.l.Error("Error creating reading session", "error", err)
-			return domain.ReadingState{}, err
-		}
-		readingState.SessionId = sessionId
+	if _, err := tx.ExecContext(ctx, CloseStaleReadingSessionsQuery, userId, bookId, startedAt); err != nil {
+		rs.l.Error("Error closing stale reading sessions", "error", err)
+		return domain.ReadingState{}, err
 	}
+
+	const CreateReadingSessionQuery = `
+		INSERT INTO reading_sessions (id, user_id, book_id, started_at, ended_at, minutes)
+		VALUES ($1, $2, $3, $4, NULL, 0)
+	`
+	if _, err := tx.ExecContext(ctx, CreateReadingSessionQuery, sessionId, userId, bookId, startedAt); err != nil {
+		rs.l.Error("Error creating reading session", "error", err)
+		return domain.ReadingState{}, err
+	}
+	readingState.SessionId = sessionId
 
 	if err := tx.Commit(); err != nil {
 		rs.l.Error("Transaction commit failed", "error", err)
