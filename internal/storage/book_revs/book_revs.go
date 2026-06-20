@@ -50,7 +50,7 @@ func (brs *bookRevsStorage) Save(ctx context.Context, bookReview domain.BookRevi
 	}
 
 	const CreateBookReviewQuery = `
-		INSERT INTO book_revs (id, user_id, book_id, rating, created_at)
+		INSERT INTO book_reviews (id, user_id, book_id, rating, created_at)
 		VALUES ($1, $2, $3, $4, $5)
 	`
 

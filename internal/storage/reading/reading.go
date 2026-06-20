@@ -114,7 +114,7 @@ func (rs *readingStorage) CanRead(ctx context.Context, userId uuid.UUID, bookId 
 				FROM user_subscriptions
 				WHERE user_id = $1
 					AND status = 'active'
-					AND expires_at > NOW()
+					AND expired_at > NOW()
 			)
 	`
 	if err := rs.db.QueryRowContext(ctx, CanReadQuery, userId, bookId).Scan(&canRead); err != nil {
