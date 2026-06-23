@@ -120,6 +120,10 @@ func calculateProgress(currentPage int, pagesCount int) (int, int, domain.Status
 	}
 
 	progressPercent := currentPage * 100 / pagesCount
+	if progressPercent < 10 {
+		progressPercent = 10
+	}
+
 	status := domain.Reading
 	if progressPercent >= 100 {
 		status = domain.Finished

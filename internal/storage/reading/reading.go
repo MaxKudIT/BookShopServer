@@ -19,12 +19,16 @@ func (rs *readingStorage) Start(ctx context.Context, userId uuid.UUID, bookId uu
 	readingState := domain.ReadingState{BookId: bookId}
 	const UpsertReadingProgressQuery = `
 		INSERT INTO user_reading_progress (user_id, book_id, status, current_page, progress_percent, updated_at)
-		VALUES ($1, $2, $3, 1, 0, NOW())
+		VALUES ($1, $2, $3, 1, 10, NOW())
 		ON CONFLICT (user_id, book_id)
 		DO UPDATE SET
 			status = CASE
 				WHEN user_reading_progress.status = $4 THEN user_reading_progress.status
 				ELSE $3
+			END,
+			progress_percent = CASE
+				WHEN user_reading_progress.status = $4 THEN user_reading_progress.progress_percent
+				ELSE GREATEST(user_reading_progress.progress_percent, EXCLUDED.progress_percent)
 			END,
 			updated_at = NOW()
 		RETURNING current_page, progress_percent, status

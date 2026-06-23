@@ -140,6 +140,7 @@ func TestCalculateProgress(t *testing.T) {
 		wantErr     bool
 	}{
 		{"first page starts reading", 1, 10, 1, 10, domain.Reading, false},
+		{"first page of large book starts at ten percent", 1, 300, 1, 10, domain.Reading, false},
 		{"middle page keeps reading", 5, 10, 5, 50, domain.Reading, false},
 		{"last page finishes", 10, 10, 10, 100, domain.Finished, false},
 		{"page above total clamps to finish", 15, 10, 10, 100, domain.Finished, false},
@@ -260,6 +261,7 @@ func TestReadingServiceUpdateProgress(t *testing.T) {
 		wantErr     bool
 	}{
 		{"first of ten", 1, 10, 1, 10, domain.Reading, false},
+		{"first of large book", 1, 300, 1, 10, domain.Reading, false},
 		{"middle progress", 6, 20, 6, 30, domain.Reading, false},
 		{"last page finishes", 20, 20, 20, 100, domain.Finished, false},
 		{"page over total clamps", 30, 20, 20, 100, domain.Finished, false},
