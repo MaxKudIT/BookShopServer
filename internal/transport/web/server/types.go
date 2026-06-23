@@ -93,6 +93,10 @@ type aiRouter interface {
 	AIRegRouters(ctx context.Context, gr *gin.RouterGroup)
 }
 
+type adminRouter interface {
+	AdminRegRouters(ctx context.Context, gr *gin.RouterGroup)
+}
+
 type server struct {
 	ur   userRouter
 	br   bookRouter
@@ -116,8 +120,9 @@ type server struct {
 	oir  orderItemsRouter
 	acr  aiChatRouter
 	ai   aiRouter
+	ar   adminRouter
 }
 
-func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter, rr readingRouter, rsr readingSessionsRouter, brr bookRevsRouter, bvr bookViewsRouter, sr statsRouter, recr recommendationRouter, usr userSubscriptionsRouter, spr subscriptionPaymentsRouter, splr subscriptionPlansRouter, pbr physicalBooksRouter, or ordersRouter, oir orderItemsRouter, acr aiChatRouter, ai aiRouter) *server {
-	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr, rr: rr, rsr: rsr, brr: brr, bvr: bvr, sr: sr, recr: recr, usr: usr, spr: spr, splr: splr, pbr: pbr, or: or, oir: oir, acr: acr, ai: ai}
+func New(ur userRouter, br bookRouter, pr pageRouter, ubr ubRouter, cir cartItemsRouter, cr cartRouter, fir favItemsRouter, fr favRouter, rr readingRouter, rsr readingSessionsRouter, brr bookRevsRouter, bvr bookViewsRouter, sr statsRouter, recr recommendationRouter, usr userSubscriptionsRouter, spr subscriptionPaymentsRouter, splr subscriptionPlansRouter, pbr physicalBooksRouter, or ordersRouter, oir orderItemsRouter, acr aiChatRouter, ai aiRouter, ar adminRouter) *server {
+	return &server{ur: ur, br: br, pr: pr, ubr: ubr, cir: cir, cr: cr, fir: fir, fr: fr, rr: rr, rsr: rsr, brr: brr, bvr: bvr, sr: sr, recr: recr, usr: usr, spr: spr, splr: splr, pbr: pbr, or: or, oir: oir, acr: acr, ai: ai, ar: ar}
 }

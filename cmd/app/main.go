@@ -12,6 +12,7 @@ import (
 	"github.com/bookshop/internal/storage/knowledge_base"
 
 	"github.com/bookshop/internal/logger"
+	adminS "github.com/bookshop/internal/service/admin"
 	acS "github.com/bookshop/internal/service/ai_chat"
 	adS "github.com/bookshop/internal/service/ai_dialog"
 	bookS "github.com/bookshop/internal/service/book"
@@ -36,6 +37,7 @@ import (
 	usubS "github.com/bookshop/internal/service/user_subscriptions"
 	ubS "github.com/bookshop/internal/service/users_books"
 	"github.com/bookshop/internal/storage"
+	"github.com/bookshop/internal/storage/admin"
 	"github.com/bookshop/internal/storage/ai_chat"
 	"github.com/bookshop/internal/storage/book"
 	"github.com/bookshop/internal/storage/book_revs"
@@ -59,6 +61,7 @@ import (
 	"github.com/bookshop/internal/storage/user"
 	user_subscriptions "github.com/bookshop/internal/storage/user_subscriptions"
 	"github.com/bookshop/internal/storage/users_books"
+	adminH "github.com/bookshop/internal/transport/web/controllers/admin"
 	acH "github.com/bookshop/internal/transport/web/controllers/ai_chat"
 	aihandler "github.com/bookshop/internal/transport/web/controllers/ai_service"
 	bookH "github.com/bookshop/internal/transport/web/controllers/book"
@@ -82,6 +85,7 @@ import (
 	usubH "github.com/bookshop/internal/transport/web/controllers/user_subscriptions"
 	ubH "github.com/bookshop/internal/transport/web/controllers/users_books"
 	"github.com/bookshop/internal/transport/web/middleware"
+	adminR "github.com/bookshop/internal/transport/web/routers/admin"
 	acR "github.com/bookshop/internal/transport/web/routers/ai_chat"
 	airouter "github.com/bookshop/internal/transport/web/routers/ai_service"
 	bookR "github.com/bookshop/internal/transport/web/routers/book"
@@ -167,6 +171,12 @@ func main() {
 	bs := bookS.New(bst, ust, lserv)
 	bh := bookH.New(bs, lhand)
 	br := bookR.New(bh)
+
+	loggerSv.Info("Initializing admin components...")
+	admst := admin.New(db, lstor)
+	admserv := adminS.New(admst, lserv)
+	admh := adminH.New(admserv, lhand)
+	admr := adminR.New(admh)
 
 	loggerSv.Info("Initializing physical_books components...")
 	pbst := physical_books.New(db, lstor)
@@ -316,7 +326,7 @@ func main() {
 	airout := airouter.New(aihand)
 
 	loggerSv.Info("Creating server...")
-	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, splanr, pbr, or, oir, acr, airout)
+	server := server.New(ur, br, pr, ubr, cir, cr, fir, fr, readr, rsr, brr, bvr, sr, recr, usubr, spayr, splanr, pbr, or, oir, acr, airout, admr)
 	router := server.Create()
 
 	loggerSv.Info("Server starting", "port", ":3000")

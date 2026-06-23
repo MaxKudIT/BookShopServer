@@ -43,6 +43,7 @@ func (s *server) Create() *gin.Engine {
 		s.oir.OrderItemsRegRouters(context.TODO(), maingr)
 		s.acr.AIChatRegRouters(context.TODO(), maingr)
 		s.ai.AIRegRouters(context.TODO(), maingr)
+		s.ar.AdminRegRouters(context.TODO(), maingr)
 	}
 
 	return router
