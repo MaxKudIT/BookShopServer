@@ -71,7 +71,7 @@ func (rsserv *readingSessionsService) LastReadingBooks(ctx context.Context, fire
 	if rsserv.hs != nil {
 		lastReadingBooks, err := rsserv.hs.LastReadingBooks(ctx, userId, limit)
 		if err == nil && len(lastReadingBooks) > 0 {
-			books, err := rsserv.bs.ReadingBookPreviews(ctx, lastReadingBooks)
+			books, err := rsserv.bs.ReadingBookPreviews(ctx, userId, lastReadingBooks)
 			if err != nil {
 				rsserv.l.Error("Error getting reading book previews from redis records", "error", err)
 				return nil, err
@@ -97,7 +97,7 @@ func (rsserv *readingSessionsService) LastReadingBooks(ctx context.Context, fire
 		}
 	}
 
-	books, err := rsserv.bs.ReadingBookPreviews(ctx, lastReadingBooks)
+	books, err := rsserv.bs.ReadingBookPreviews(ctx, userId, lastReadingBooks)
 	if err != nil {
 		rsserv.l.Error("Error getting reading book previews", "error", err)
 		return nil, err

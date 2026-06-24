@@ -17,7 +17,7 @@ type readingSessionsStorage interface {
 }
 
 type bookStorage interface {
-	ReadingBookPreviews(ctx context.Context, lastReadingBooks []domain.LastReadingBook) ([]domain.ReadingBookPreview, error)
+	ReadingBookPreviews(ctx context.Context, userId uuid.UUID, lastReadingBooks []domain.LastReadingBook) ([]domain.ReadingBookPreview, error)
 }
 
 type historyStorage interface {

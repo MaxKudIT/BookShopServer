@@ -21,13 +21,14 @@ type LastReadingBook struct {
 }
 
 type ReadingBookPreview struct {
-	Id            uuid.UUID
-	ImageUrl      string
-	Title         string
-	Author        string
-	Rate          float64
-	Genre         Genre
-	CreatedDate   time.Time
-	PagesCount    int
-	LastStartedAt time.Time
+	Id              uuid.UUID
+	ImageUrl        string
+	Title           string
+	Author          string
+	Rate            float64
+	Genre           Genre
+	CreatedDate     time.Time
+	PagesCount      int
+	ProgressPercent int
+	LastStartedAt   time.Time
 }

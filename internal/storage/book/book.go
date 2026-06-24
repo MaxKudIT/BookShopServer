@@ -488,7 +488,7 @@ func (bs *bookStorage) BookViewPreviews(ctx context.Context, bookViews []domain.
 	return previews, nil
 }
 
-func (bs *bookStorage) ReadingBookPreviews(ctx context.Context, lastReadingBooks []domain.LastReadingBook) ([]domain.ReadingBookPreview, error) {
+func (bs *bookStorage) ReadingBookPreviews(ctx context.Context, userId uuid.UUID, lastReadingBooks []domain.LastReadingBook) ([]domain.ReadingBookPreview, error) {
 	if len(lastReadingBooks) == 0 {
 		return make([]domain.ReadingBookPreview, 0), nil
 	}
@@ -503,20 +503,24 @@ func (bs *bookStorage) ReadingBookPreviews(ctx context.Context, lastReadingBooks
 	previews := make([]domain.ReadingBookPreview, 0, len(lastReadingBooks))
 	const ReadingBookPreviewsQuery = `
 		SELECT
-			id,
-			image_url,
-			title,
-			author,
-			rate,
-			genre,
-			created_date,
-			pages_count
-		FROM books
-		WHERE id = ANY($1)
-		ORDER BY array_position($1::uuid[], id)
+			b.id,
+			b.image_url,
+			b.title,
+			b.author,
+			b.rate,
+			b.genre,
+			b.created_date,
+			b.pages_count,
+			COALESCE(urp.progress_percent, 10) AS progress_percent
+		FROM books b
+		LEFT JOIN user_reading_progress urp
+			ON urp.book_id = b.id
+			AND urp.user_id = $2
+		WHERE b.id = ANY($1)
+		ORDER BY array_position($1::uuid[], b.id)
 	`
 
-	rows, err := bs.db.QueryContext(ctx, ReadingBookPreviewsQuery, pq.Array(bookIds))
+	rows, err := bs.db.QueryContext(ctx, ReadingBookPreviewsQuery, pq.Array(bookIds), userId)
 	if err != nil {
 		switch {
 		case errors.Is(err, context.Canceled):
@@ -543,6 +547,7 @@ func (bs *bookStorage) ReadingBookPreviews(ctx context.Context, lastReadingBooks
 			&currentObject.Genre,
 			&currentObject.CreatedDate,
 			&currentObject.PagesCount,
+			&currentObject.ProgressPercent,
 		); err != nil {
 			bs.l.Error("Scan failed", "error", err)
 			return nil, err
